@@ -1,0 +1,7 @@
+*.un~
+*.ahk~
+*.log
+*.cjp
+*.*~
+/user/*
+!/user/default

@@ -1,8 +1,9 @@
 ﻿
-;; 切换英文输入法
+;; 切换英文输入法，同时将CapsLock设置为小写状态
 en_input()
 {
     global IDC_IBEAM
+    SetCapsLockState "Off"
     PostMessage 0x50, 0, 0x4090409,, "A" 
     return 
 }

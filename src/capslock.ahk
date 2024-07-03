@@ -3,7 +3,7 @@
 ; 定义全局变量
 global isCapsLockDown := false
 global capsLockDownTime := 0
-global doubleClickCapsTimeout := 300 ; 双击的时间阈值（毫秒）
+global doubleClickCapsTimeout := 260 ; 双击的时间阈值（毫秒）
 global longPressCapsThreshold := 1100 ; 长按的时间阈值（毫秒）
 global lastCapsLockPressTime := 0
 global isSingleClickCaps := false
@@ -75,17 +75,20 @@ CapsLock Up::
     isCapsLockDown := false
     pressDuration := A_TickCount - capsLockDownTime
 
-    ; 长按保持CapsLock原来的功能，也就是切换大小写
+    ; 长按保持CapsLock，切换为大写
     if (pressDuration > longPressCapsThreshold)
     {
         isSingleClickCaps := false
 
-        ; 检查并切换 Caps Lock 状态
-        if GetKeyState("CapsLock", "T") {
-            SetCapsLockState "Off"
-        } else {
-            SetCapsLockState "On"
-        }
+        ; 切换为大写状态
+        SetCapsLockState "On"
+
+      ; ; 检查并切换 Caps Lock 状态
+      ; if GetKeyState("CapsLock", "T") {
+      ;     SetCapsLockState "Off"
+      ; } else {
+      ;     SetCapsLockState "On"
+      ; }
     }
     else if (isSingleClickCaps)
     {
