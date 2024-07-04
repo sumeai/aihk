@@ -4,7 +4,7 @@
 global isCapsLockDown := false
 global capsLockDownTime := 0
 global doubleClickCapsTimeout := 260 ; 双击的时间阈值（毫秒）
-global longPressCapsThreshold := 1100 ; 长按的时间阈值（毫秒）
+global longPressCapsThreshold := 600 ; 长按的时间阈值（毫秒）
 global lastCapsLockPressTime := 0
 global isSingleClickCaps := false
 
