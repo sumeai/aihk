@@ -1,4 +1,4 @@
-﻿; 判断是否有选中文字
+﻿;; 判断是否有选中文字
 CheckIfTextSelected_clipboard(second:=0.6) {
     ; 保存当前剪贴板内容
     ClipSaved := ClipboardAll()
@@ -48,5 +48,23 @@ GetSelectTextOrClipboard_clipboard(second:=0.6) {
 }
 
 
+;; 借用剪贴板来输出
+SendBy_clipboard(keys_) {
+    ; 保存当前剪贴板内容
+    ClipSaved := ClipboardAll()
+    sleep 50
+
+    A_Clipboard := keys_  ; 清空剪贴板
+    sleep 50
+
+
+    ; 发送 Ctrl+C 复制选中的文本
+    Send "^v"
+
+    sleep 100
+
+    ; 恢复剪贴板内容
+    A_Clipboard := ClipSaved
+}
 
 

@@ -9,32 +9,32 @@ if not A_IsAdmin
 #include ./src/alt_vim.ahk
 #include ./src/switch_keyboard.ahk
 #include ./src/capslock.ahk
+#include ./src/360se.ahk
 
 
 !Pause:: reload
 #Pause:: 
 {
-IB := InputBox("临时运行以下AHK脚本", "运行AHK脚本", "w600 h120", A_Clipboard)
-if IB.Result = "Cancel"
-{
-   	ToolTip "取消运行"
-	SetTimer () => ToolTip(), -1000 
-}
-else
-{
-    if FileExist("tempscript.ahk")
+    IB := InputBox("临时运行以下AHK脚本", "运行AHK脚本", "w600 h120", A_Clipboard)
+    if IB.Result = "Cancel"
     {
-        filedelete "tempscript.ahk"
-        sleep 100
+        ToolTip "取消运行"
+        SetTimer () => ToolTip(), -1000 
     }
-	fileappend IB.value,"tempscript.ahk"
-	sleep 100
-	run "tempscript.ahk"
+    else
+    {
+        if FileExist("tempscript.ahk")
+        {
+            filedelete "tempscript.ahk"
+            sleep 100
+        }
+        fileappend IB.value,"tempscript.ahk"
+        sleep 100
+        run "tempscript.ahk"
+    }
 }
 
-}
-
-:*:ahkhelp2;::run 'https://www.autohotkey.com/docs/v2/index.htm'
+;:*:ahkhelp2;::run 'https://www.autohotkey.com/docs/v2/index.htm'
 :*:ahkhelp;::
 {
     run StrReplace(a_ahkpath, "64.exe", ".chm")
@@ -60,4 +60,7 @@ else
 #include ./src/win/gvim.ahk
 #include ./src/win/feishu.ahk
 #include ./src/win/vscode.ahk
+
+#include ./user/kairui/idea.ahk
+
 #Hotif
