@@ -3,10 +3,8 @@
 
 arroundwith(_left, _right)
 {
-    clip := GetSelectTextOrClipboard_clipboard()
-    sendText(_left)
-    sendText(clip)
-    sendText(_right)
+    clip := _left . GetSelectTextOrClipboard_clipboard() . _right
+    SendBy_clipboard(clip)
 }
 
 
@@ -32,7 +30,7 @@ arroundwith(_left, _right)
 
 :?*:cnote;:: \n<color:lightgray>
 
-#Hotif Winactive(".html ahk_exe Code.exe")
+#Hotif Winactive(".html")
 
 !s::
 {
@@ -59,6 +57,19 @@ arroundwith(_left, _right)
 ^4::
 {
     arroundwith('<h4>', '</h4>')
+}
+
+
+!t::
+{
+    arroundwith('<template id="">`n', '`n</template>')
+
+}
+
+
+!p::
+{
+    arroundwith('<p optional>`n', '`n</p>')
 }
 
 

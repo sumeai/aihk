@@ -1,0 +1,378 @@
+#Include ../include/tip.aik
+#include ../include/cmdString.aik
+#Include ../include/inifile.aik
+
+【复制编辑飞扬命令串】()
+{
+	Clipboard := ""
+	Send("^c")
+	if !ClipWait(0.5)
+		return
+	【编辑飞扬命令串】()
+}
+
+【编辑飞扬命令串】()
+{
+	g_AWinID := WinGetID("A")
+	tooltip7("【编辑飞扬命令串】")
+	cmdstr := ∑编辑飞扬命令串(Clipboard)
+	if cmdstr != ""
+	{
+		Clipboard := cmdstr
+		if WinExist("ahk_id " g_AWinID)
+		{
+			if !WinActive("ahk_id " g_AWinID)
+				WinActivate("ahk_id " g_AWinID)
+			WinWaitActive("ahk_id " g_AWinID)
+			; GuiHide(23)
+			Send("^v")
+		}
+		else
+		{
+			ToolTip("命令已经复制到剪贴板！")
+			Sleep(1000)
+			ToolTip()  ; 清除提示
+		}
+	}
+}
+
+getOptionTypes() 
+{
+    OptionTypes := "send|menu|gosub|func|run|clip|submenu|sendByClip|tip:|runby:|launchy:|IfWinActive:|IfWinExist:|IfExist:|name:|sleep:|MAX|MIN|HIDE|WinActivate:"
+
+    return StrSplit(OptionTypes, "|")
+}
+
+
+∑编辑飞扬命令串(_cmdstr := "", Prompt_ := "") {
+    global _cmdstr_edtInput := "", _cmdstr_edtOptions := "", _cmdstr_lbDefOptions := ""
+    global _cmdstr_bValid := "", _cmdstr_lbOptions := "", _cmdstr_edtCmd := ""
+    
+    var_title := "编辑飞扬命令串"
+    wintitle := var_title " ahk_class AutoHotkeyGUI"
+    var_ret := ""
+    bAutoFilt := true
+
+    cmdstr := ""
+    var_checked := "Checked"
+    DefOptions := ""
+
+    OptionTypes := getOptionTypes()
+
+    if (_cmdstr != "") {
+        Split := cmdStringSplit(_cmdstr, &opt)
+        cmdstr := Split
+        if RegExMatch(opt, "^\d(?=$|\|)", &var_match) {
+            if (var_match[] = "")
+                var_checked := ""
+            DefOptions := RegExReplace(opt, "^\d[$|\|]")
+        } else {
+            DefOptions := opt
+        }
+    }
+
+    OptionList := DefOptions
+    if (DefOptions != "")
+        OptionList := "|" OptionList
+
+    if (var_checked = "")
+        var_preview := "0" OptionList ") " cmdstr
+    else
+        var_preview := "1" OptionList ") " cmdstr
+
+    previewText := (Prompt_ = "") ? "预览生成的飞扬命令串:" : "【预览】： " Prompt_
+
+    Gui23 := Gui("-SysMenu", var_title)
+
+    Gui23.Add("Text", "x6 y18 w50 h20 +Right", "命令值:")
+    _cmdstr_edtInput := Gui23.Add("Edit", "x60 y13 w400 h25", cmdstr)
+    _cmdstr_edtInput.OnEvent("Change", CMD_InputChanged)
+
+    Gui23.Add("Text", "x12 y50 w130 h20", "选项类型:")
+    _cmdstr_edtOptions := Gui23.Add("Edit", "x12 y70 w130 h22 ")
+    _cmdstr_edtOptions.OnEvent("Change", OptionEditChanged)
+
+    _cmdstr_lbDefOptions := Gui23.Add("ListBox", "x12 y100 w130 h170 ", OptionTypes)
+    _cmdstr_lbDefOptions.OnEvent("DoubleClick", DefOptionsClicked)
+    ; _cmdstr_lbDefOptions.OnEvent("Click", DefOptionsClicked)
+
+    Gui23.Add("Text", "x206 y50", "命令选项:")
+    _cmdstr_bValid := Gui23.Add("CheckBox", "x400 y45 w130 h20 ", "是否有效")
+    _cmdstr_bValid.OnEvent("Click", GenerateCmdStr)
+    _cmdstr_bValid.Value := (var_checked = "Checked") ? 1 : 0
+
+    _cmdstr_lbOptions := Gui23.Add("ListBox", "x206 y70 w360 h210 ", StrSplit(DefOptions, "|"))
+    _cmdstr_lbOptions.OnEvent("Change", GenerateCmdStr)
+
+    Gui23.Add("Text", "x12 y270", previewText)
+    Gui23.Add("Edit", "x12 y290 w554 h58 vcmdstr_edtCmd", var_preview)
+
+    Gui23.Add("Button", "x460 y11 w55 h28", "确定").OnEvent("Click", OKClicked)
+    Gui23.Add("Button", "x515 y11 w50 h28", "取消").OnEvent("Click", CancelClicked)
+    Gui23.Add("Button", "x151 y68 w45 h25", ">>").OnEvent("Click", AddOptionClicked)
+    Gui23.Add("Button", "x151 y100 w45 h25", "<<").OnEvent("Click", RemoveOptionClicked)
+    Gui23.Add("Button", "x151 y200 w45 h25", "生成").OnEvent("Click", GenerateCmdStr)
+    Gui23.Add("Button", "x151 y235 w45 h25", "执行").OnEvent("Click", RunCmdStr)
+
+    Gui23.Add("StatusBar",, "编辑飞扬命令串")
+
+    Gui23.Show("w578 h377")
+
+
+    HotIfWinActive(wintitle)
+    Hotkey("!F4", CancelClicked2)
+    Hotkey("~Enter", EnterPressed)
+
+    while WinExist(wintitle)
+        Sleep(200)
+
+    return var_ret
+}
+
+CMD_InputChanged(ctrl, info) {
+    GenerateCmdStr(ctrl, info)
+}
+
+OptionEditChanged(ctrl, info) {
+    global bAutoFilt, _cmdstr_edtOptions
+    OptionTypes := getOptionTypes()
+
+    if !bAutoFilt {
+        bAutoFilt := true
+        return
+    }
+
+    ctrl.Gui.Submit("NoHide")
+    newList := ""
+    if (_cmdstr_edtOptions = "") {
+        newList := OptionTypes
+    } else {
+        Loop Parse, OptionTypes, "|" {
+            if InStr(A_LoopField, _cmdstr_edtOptions)
+                newList .= "|" A_LoopField
+        }
+        newList := LTrim(newList, "|")
+    }
+    _cmdstr_lbDefOptions.Text := "|"
+    _cmdstr_lbDefOptions.Text := newList
+}
+
+
+
+DefOptionsClicked(GuiCtrlObj, Info) {
+    global bAutoFilt, _cmdstr_edtOptions
+    GuiCtrlObj.Gui.Submit("NoHide")
+    bAutoFilt := false
+    if (Info = "DoubleClick") {
+        _cmdstr_edtOptions.Text := GuiCtrlObj.Text
+        AddOptionClicked(GuiCtrlObj, info)
+    } else {
+        _cmdstr_edtOptions.Text := GuiCtrlObj.Text
+    }
+    ;; 设置状态栏提示信息
+    ; SB_SetText("请选择命令选项类型")
+}
+
+GenerateCmdStr(ctrl, info) {
+    ; ctrl.Gui.Submit("NoHide")
+    ; OptionList := ""
+    ; GuiControlGet, items, 23:List, _cmdstr_lbOptions
+    ; Loop Parse, items, "`n"
+    ;     OptionList .= (OptionList = "" ? "" : "|") A_LoopField
+    ; valid := _cmdstr_bValid
+    ; if (OptionList = "")
+    ;     OptionList := valid
+    ; else
+    ;     OptionList := valid "|" OptionList
+    ; GuiControl,, _cmdstr_edtCmd, % OptionList ") " _cmdstr_edtInput
+}
+
+AddOptionClicked(ctrl, info) {
+    ctrl.Gui.Submit("NoHide")
+    if (_cmdstr_edtOptions = "")
+        return
+
+    OptionList := _cmdstr_lbOptions.Text
+    lbIndex := _cmdstr_lbOptions.value
+    if (lbIndex < 1)
+        return
+
+    var_option := _cmdstr_edtOptions.get(lbIndex)
+    if InStr(var_option, ":") {
+        var_input := InputBox("请输入命令选项的条件", var_option).value
+        if var_input = ""
+            return
+        var_option := var_option var_input
+    }
+
+
+    if OptionList.has(var_option) {
+        MsgBox "命令选项 " var_option " 已经存在！"
+        return
+    }
+
+    OptionList.append(var_option)
+
+    _cmdstr_edtOptions.focus()
+
+    GenerateCmdStr(ctrl, info)
+}
+
+
+RemoveOptionClicked(ctrl, info) {
+    ctrl.Gui.Submit("NoHide")
+    selIndex := _cmdstr_lbOptions.Value
+    if selIndex > 0
+        _cmdstr_lbOptions.Delete(selIndex)
+
+    GenerateCmdStr(ctrl, info)
+}
+
+OKClicked(ctrl, info) {
+    global var_ret
+    ctrl.Gui.Submit("NoHide")
+    var_ret := _cmdstr_edtCmd
+    CancelClicked(ctrl.Gui, info)
+}
+
+CancelClicked(ctrl, info) {
+    _cmdstr_edtInput := "", _cmdstr_edtOptions := "", _cmdstr_lbDefOptions := ""
+    _cmdstr_bValid := "", _cmdstr_lbOptions := "", _cmdstr_edtCmd := ""
+    ctrl.Gui.Destroy()
+}
+
+
+CancelClicked2(ctrl) {
+    _cmdstr_edtInput := "", _cmdstr_edtOptions := "", _cmdstr_lbDefOptions := ""
+    _cmdstr_bValid := "", _cmdstr_lbOptions := "", _cmdstr_edtCmd := ""
+    ctrl.Gui.Destroy()
+}
+
+RunCmdStr(ctrl, info) {
+    ctrl.Gui.Submit("NoHide")
+    if CheckCmd(_cmdstr_edtCmd)
+        run_cmd(_cmdstr_edtCmd)
+}
+
+EnterPressed(ctrl) {
+    global _cmdstr_edtOptions, _cmdstr_lbDefOptions
+    ctrl.Gui.Submit("NoHide")
+    hwnd := WinExist("A")
+    ControlGetFocus(&ctrl, hwnd)
+
+    ;; 当前在选项编辑框中回车
+    if (ctrl = "Edit2") {
+        var_temp := _cmdstr_lbDefOptions.Text
+
+        ;; 如果ListBox有选项，则自动选择第一项，填充到_cmdstr_edtOptions
+        if var_temp != "" {
+            For Index, Field in _cmdstr_lbDefOptions.Text
+            {
+                _cmdstr_edtOptions.Text := Field
+                break
+            }
+        }
+	;; 自动点击 >> 按钮(Button4)
+        ControlClick "Button4", hwnd
+    }
+}
+
+
+CheckCmd(cmdstr_) {
+    bRet := true
+    opt := ""
+    cmdstr := cmdStringSplit(cmdstr_, &opt)
+
+    if InStrList(opt, "0", "|") > 0 {
+        tooltip3("命令设置为无效！")
+        return false
+    }
+
+    if InStrList(opt, "send", "|") > 0 {
+        if cmdstr = "" {
+            tooltip3("send 类型的命令值不能为空！")
+            return false
+        }
+    } else if InStrList(opt, "gosub", "|") > 0 {
+        if !IsLabel(cmdstr) {
+            tooltip3("gosub 类型的命令值指定的功能模块无效！")
+            return false
+        }
+    } else if InStrList(opt, "menu", "|") > 0 {
+        iniMenumem := IniFileRead("ShortcutMenu.ini")
+        tempArray := SecArrayFromIniMem(iniMenumem, cmdstr)
+        if tempArray.Length = 0 {
+            tooltip3("尚未配置快捷菜单：" cmdstr)
+            return false
+        }
+    }
+
+    if RegExMatch(opt, "i)(?<=IfExist:).*?(?=$|\)|\|)", &var_match) > 0 {
+        if FileExist(var_match) {
+            bRet := true
+        } else {
+            return false
+        }
+    }
+
+    if RegExMatch(opt, "i)(?<=IfWinActive:).*?(?=$|\)|\|)", &var_match) > 0 {
+        if WinActive(var_match) {
+            bRet := true
+        } else {
+            return false
+        }
+    }
+
+    if RegExMatch(opt, "i)(?<=IfWinNotActive:).*?(?=$|\)|\|)", &var_match) > 0 {
+        if !WinActive(var_match) {
+            bRet := true
+        } else {
+            return false
+        }
+    }
+
+    if RegExMatch(opt, "i)(?<=IfWinExist:).*?(?=$|\)|\|)", &var_match) > 0 {
+        if WinExist(var_match) {
+            bRet := true
+        } else {
+            return false
+        }
+    }
+
+    if RegExMatch(opt, "i)(?<=IfWinNotExist:).*?(?=$|\)|\|)", &var_match) > 0 {
+        if !WinExist(var_match) {
+            bRet := true
+        } else {
+            return false
+        }
+    }
+
+    if RegExMatch(opt, "i)(?<=runby:).*?(?=$|\)|\|)", &var_match) > 0 {
+        bRet := false
+        if FileExist(var_match) {
+            bRet := true
+        } else {
+            return false
+        }
+    } else if RegExMatch(opt, "i)(?<=launchy:).*?(?=$|\)|\|)", &var_match) > 0 {
+        var_read := read_ini("launchy.ini", "file", var_match, "")
+        if var_read != "" {
+            for var_file in StrSplit(var_read, "|") {
+                if var_file != "" {
+                    if FileExist(var_file) {
+                        bRet := true
+                    } else {
+                        return false
+                    }
+                    break
+                } else {
+                    return false
+                }
+            }
+        } else {
+            return false
+        }
+    }
+
+    return true
+}

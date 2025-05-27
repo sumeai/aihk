@@ -1,0 +1,338 @@
+/**
+*@file 		Array.aik
+*@author	teshorse
+*@date 		2011.02.22
+*@brief		数组操作相关函数
+注意：
+	在AutoHotkey中，数组的概念与其他语言不一样，甚至不能称之为数组，
+	实际上是将带有顺序编号的一组变量名，视为数组而已，如
+	var0, var1, var2, ... , varn
+	而var1等本身就是一个单独的变量，可以与其他变量一样单独赋值。
+	将这一组变量视为数组之后，一般约定var0存储后面元素个数之和，即数组大小。
+*/
+ClearArray(&ArrayName)
+{
+    ArrayName := []
+}
+
+;; 在数组ArrayName中查找_searchText并返回所在序号，返回0表示没有查找到。bEqual指定查找方式是否完全匹配
+;; bEqual为true时，只有完全相等才返回；false时，返回第一个包含了_searchText的数组元素
+SearchArray(ArrayName, _searchText, bEqual := false)
+{
+    if (ArrayName.Length = 0)
+        return 0
+    
+    if (_searchText = "")
+        return 0
+    
+    for index, var_temp in ArrayName
+    {
+        if (bEqual && var_temp == _searchText)
+            return index
+        else if InStr(var_temp, _searchText)
+            return index
+    }
+    return 0
+}
+
+;; 在数组ArrayName中查找并删除_searchText，返回false表示没有查找到，true表示查找并删除成功。
+;; bEqual为true时，只有完全相等才返回；false时，返回第一个包含了_searchText的数组元素
+RemoveArray(&ArrayName, _searchText, bEqual := false)
+{
+    if (ArrayName.Length = 0)
+        return false
+    
+    if (_searchText = "")
+        return false
+    
+    bFind := false
+    index := ArrayName.Length
+    while (index >= 1)
+    {
+        var_temp := ArrayName[index]
+        if (bEqual && var_temp == _searchText) || (!bEqual && InStr(var_temp, _searchText))
+        {
+            ArrayName.RemoveAt(index)
+            bFind := true
+        }
+        index--
+    }
+    return bFind
+}
+
+;; 在数据末尾增加一个元素
+AppendArray(&ArrayName, _text)
+{
+    ArrayName.Push(_text)
+}
+∑数组排序(ArrayIn, &ArrayOut)
+{
+    if (ArrayIn.Length <= 0)
+        return false
+
+    ; 清空ArrayOut
+    ArrayOut := []
+
+    for idx, var_temp in ArrayIn
+    {
+        if (var_temp = "")
+            continue
+        loop2 := ArrayOut.Length
+        inspos := -1
+        if (loop2 <= 0)
+        {
+            inspos := 1
+        }
+        else
+        {
+            ; 折半查找法查找插入位置
+            min := 1
+            max := loop2
+            half := 0
+            while (true)
+            {
+                if (min > max)
+                {
+                    if (half > 0)
+                        inspos := half
+                    break
+                }
+                
+                half := (min + max) // 2
+                idx2 := ArrayOut[half]
+                var_temp2 := ArrayIn[idx2]
+                if (var_temp == var_temp2)
+                {
+                    inspos := half
+                    break
+                }
+                else if (var_temp > var_temp2)
+                {
+                    min := half + 1
+                }
+                else
+                {
+                    max := half - 1
+                }
+            }
+        }
+
+        if (inspos > 0)
+        {
+            ArrayOut.Push(0) ; 临时扩展数组
+            idx2 := ArrayOut.Length
+            while (true)
+            {
+                if (idx2 < 2 || idx2 <= inspos)
+                    break
+                idx1 := idx2 - 1
+                ArrayOut[idx2] := ArrayOut[idx1]
+                idx2--
+            }
+            ArrayOut[inspos] := idx
+        }
+    }
+
+    ; 读取ArrayOut保存的ArrayIn序号，读取相应的值再赋值给ArrayOut
+    for i, idx in ArrayOut.Clone()
+        ArrayOut[i] := ArrayIn[idx]
+
+    return true
+}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 以下函数为在数组中搜索并排序使用
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 在 ArrayIn 中搜索 SearchText并排序，并将结果以数组ArrayOut和ArrayIndex返回
+;; ArrayOut 返回搜索到的值
+;; ArrayIndex 与ArrayOut对应，但存储的是ArrayOut的值在ArrayIn中的序号
+;; 为了排序，内部使用了一个辅助数组 %ArrayOut%_Weight_， 记得用ClearArray_Weight()释放内存
+∑数组搜索排序(ArrayIn, &ArrayOut, &ArrayIndex, SearchText)
+{
+    if (ArrayIn.Length <= 0)
+        return false
+
+    if (SearchText = "")
+        return false
+
+    ; 清空ArrayOut和ArrayIndex
+    ClearArrayWithIndex(&ArrayOut)
+    ClearArray(&ArrayIndex)
+
+;	listvars 
+;	msgbox ∑数组搜索排序( %ArrayIn%, %ArrayOut%, %ArrayIndex%, %SearchText% )
+    for idx, var_temp in ArrayIn
+    {
+        if (var_temp = "")
+            continue
+        var_instr := InStr(var_temp, SearchText)
+        if (var_instr = 0)
+            continue
+        InsertSortArrayWithIndex(&ArrayOut, var_temp, var_instr, &ArrayIndex, idx)
+    }
+
+    ; 清理调整InsertSortArrayWithIndex()时所产生的临时数组
+    ClearArray_Weight(&ArrayOut)
+    return true
+}
+ClearArrayWithIndex(&ArrayName)
+{
+    ArrayName := []
+    ArrayName._Weight_ := []
+}
+
+ClearArray_Weight(&ArrayName)
+{
+    ArrayName._Weight_ := []
+}
+
+;; 向指定数据ArrayName中，插入_Value，并以参数_Weight作为排序依据
+;; 返回插入位置：0 表示插入失败;
+;; 注意：本函数使用了临时数组%ArrayName%_Weight_，用于辅助排序
+;; 需要外部某个地方调用ClearArray_Weight()释放这个数组的内存
+InsertSortArrayWithIndex(&ArrayName, _Value, _Weight, &ArrayIndex, _Memo)
+{
+    if (_Weight = 0)
+    {
+        MsgBox("InsertSortArrayWithIndex() 的 _Weight = [" . _Weight . "] 有误!")
+        return 0
+    }
+
+    if (!ArrayName.HasProp("Length"))
+        ArrayName := []
+
+    loops := ArrayName.Length
+    
+    ;; 数组是空的, 则直接插入数据	
+    if (loops = 0)
+    {
+        ArrayName.Push(_Value)
+        ArrayName._Weight_ := [_Weight]
+        ArrayIndex.Push(_Memo)
+        return true
+    }
+    else if (loops < 0)
+    {
+        MsgBox("InsertSortArrayWithIndex(" . ArrayName . ", " . _Value . ", " . _Weight . ") 数组数量有误!")
+        return 0
+    }
+	;; else if loops > 0 	;; 以下是正常情况下计算插入位置并插入数据
+
+    min := 1
+    max := loops
+    idxpos := 0
+
+	;; 首先根据_Weight权重值，采用折半查找法寻找序列数据 %ArrayName%_Weight_ , 
+	;; 定位到值为 _Weight 的某个位置, 并将位置保存到变量 idxpos 中。
+	;; 注意：这时只能大概的定位，后面还需要根据Value的值精确定位
+    while (min <= max)
+    {
+        half := (min + max) // 2
+        var_temp := ArrayName._Weight_[half]
+        if (var_temp = "")
+        {
+            MsgBox("出错： InsertSortArrayWithIndex() 中 " . ArrayName . "_Weight_" . half . " 值为空")
+            return
+        }
+
+        if (var_temp == _Weight)
+        {
+            idxpos := half
+            break
+        }
+        else if (_Weight > var_temp)
+        {
+            min := half + 1
+        }
+        else
+        {
+            max := half - 1
+        }
+    }
+
+	;; idxpos 调整位置, 使其精确定位
+    if (idxpos = 0)	;; 如果在现有的数组中，没有找到序号, 则寻找最近的插入点
+    {
+        if (half <= 0 || half > loops)
+            return 0
+        var_temp := ArrayName._Weight_[half]
+        idxpos := (_Weight >= var_temp) ? half + 1 : half
+    }
+    else if (idxpos > 0)	;;  已经找到了粗略位置，根据_Value值进一步定位到精确位置
+    {
+        var_temp := ArrayName._Weight_[idxpos]
+        if (_Weight != var_temp)
+        {
+            MsgBox("查找出的位置有误 _Weight[" . _Weight . "] <> var_temp[" . var_temp . "]")
+            return 0
+        }
+        var_buf := ArrayName[idxpos]
+        if (_Value > var_buf)	;; 冒泡法向右移动
+        {
+            idx := idxpos
+            while (true)
+            {
+                idx++
+                if (idx > loops)
+                    break
+                var_temp := ArrayName._Weight_[idx]
+                if (_Weight != var_temp)
+                {
+                    idxpos := idx
+                    break
+                }
+                var_buf := ArrayName[idx]
+                if (var_buf > _Value)
+                {
+                    idxpos := idx
+                    break
+                }
+                else
+                {
+                    idxpos := idx
+                }
+            }
+        }
+        else if (_Value <= var_buf)		;; 冒泡法向左移动
+        {
+            idx := idxpos
+            while (true)
+            {
+                idx--
+                if (idx <= 0)
+                    break
+                var_temp := ArrayName._Weight_[idx]
+                if (_Weight != var_temp)
+                {
+                    idxpos := idx + 1
+                    break
+                }
+                var_buf := ArrayName[idx]
+                if (var_buf <= _Value)
+                {
+                    idxpos := idx + 1
+                    break
+                }
+                else
+                {
+                    idxpos := idx
+                }
+            }
+        }
+    }
+
+    if (idxpos <= 0)
+    {
+        MsgBox("出错： InsertSortArrayWithIndex() 中 " . ArrayName . "_Weight_" . half . " 值为空")
+        return 0
+    }
+	
+	;; 已经查找到精确的插入位置，插入数据
+    ArrayName.InsertAt(idxpos, _Value)
+    ArrayIndex.InsertAt(idxpos, _Memo)
+    if (!ArrayName.HasProp("_Weight_"))
+        ArrayName._Weight_ := []
+    ArrayName._Weight_.InsertAt(idxpos, _Weight)
+
+    return idxpos
+}

@@ -1,0 +1,307 @@
+#Include common.aik
+#Include string.aik
+#Include ..\SubUI\20MuiltiBox.aik
+
+;; 读写ini文件
+read_ini(Filename_, Section_, Key_, Default_ := "") {
+    value := IniRead(Filename_, Section_, Key_ , Default_)
+    if (value == "ERROR") {
+        value := Default_
+    }
+    return value
+}
+
+ReadTempIni(var_sec, var_key, var_default := "") {
+    value := IniRead( "temp.ini", var_sec, var_key , var_default)
+    if (value == "ERROR") {
+        value := var_default
+    }
+    return value
+}
+; write_ini() 向指定的ini文件中写入一个key的值，
+; isAsk指定如果已经存在key时，是否要询问用户替换？false 表示直接替换
+write_ini(Filename_, Section_, Key_, Value_, isAsk := false) {
+    if isAsk {
+        var_read := read_ini(Filename_, Section_, Key_, "")
+        if (var_read != "") {
+            if (var_read == Value_) {
+                return true
+            } else {
+                prompt := Filename_ "文件的" Section_ "节中，`n" Key_ "已经存在，要替换吗 ？"
+                var_text := "<" Key_ ">的值将从`n原始值：" var_read "`n`n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`n替换为：" Value_
+                if !MsgTipBox("ini文件存在重复的key", prompt, var_text, 600, 350) {
+                    return false
+                }
+            }
+        }
+    }
+    IniWrite Value_, Filename_, Section_, Key_
+    return true
+}
+
+WriteTempIni(var_sec, var_key, var_value) {
+    IniWrite var_value, "temp.ini", var_sec, var_key
+}
+
+del_ini(Filename_, Section_, Key_, isAsk := false) {
+    if (Key_ != "") {
+        if isAsk {
+            var_read := read_ini(Filename_, Section_, Key_, "")
+            prompt := "锟斤拷锟斤拷删锟斤拷{ " Filename_ " }锟侥硷拷锟斤拷[" Section_ "]锟斤拷锟叫碉拷锟斤拷<" Key_ ">锟斤拷`n`n锟斤拷值锟斤拷锟铰ｏ拷确锟斤拷要删锟斤拷<" Key_ ">锟斤拷"
+            if !MsgTipBox("ini锟侥硷拷删锟斤拷key", prompt, var_read, 600, 350) {
+                return false
+            }
+        }
+        IniDelete Filename_, Section_, Key_
+    } else {
+        if isAsk {
+            var_text := "准锟斤拷删锟斤拷" Filename_ "锟侥硷拷锟斤拷[" Section_ "]`n`n锟斤拷确锟斤拷要删锟斤拷锟斤拷锟斤拷Section 锟斤拷"
+            result := MsgBox(var_text, "Ini锟侥硷拷删锟斤拷Section", "YesNo")
+            if (result = "No") {
+                return false
+            }
+        }
+        IniDelete Filename_, Section_
+    }
+    return true
+}
+read_seckeys(&OutSeckeys, Filename_, Section_, bCaseSense := false)
+{
+    return read_sec(&OutSeckeys, Filename_, Section_, bCaseSense, true)
+}
+
+read_sec(&var_sec, Filename_, Section_, bCaseSense := false, bKeysOnly := false)
+{
+    count := 0
+
+
+    bFindSec := false
+    var_sec := ""
+    cur_sec := ""
+
+    Loop  read,  Filename_
+    {
+        line := A_LoopReadLine
+        var_char := SubStr(Trim(line), 1, 1)
+
+        if (var_char == "[")
+        {
+            if InStr(line, "]")
+            {
+                cur_sec := StrMid2Sub(line, "[", "]")
+                continue
+            }
+        }
+
+        if (cur_sec == Section_)
+        {
+            varPos := InStr(line, "=", bCaseSense)
+            if (varPos > 0)
+            {
+                count += 1
+                if bKeysOnly
+                {
+                    var_key := SubStr(line, 1, varPos - 1)
+                    var_sec .= "`n" . var_key
+                }
+                else
+                {
+                    var_sec .= line . "`n"
+                }
+            }
+        }
+    }
+
+    return count
+}
+
+StrMid2Sub_del(str, ldelim, rdelim)
+{
+    pos1 := InStr(str, ldelim)
+    pos2 := InStr(str, rdelim, , pos1 + 1)
+    if (pos1 > 0 && pos2 > pos1)
+        return SubStr(str, pos1 + 1, pos2 - pos1 - 1)
+    else
+        return ""
+}
+
+read_sections(&var_secqueue, inifile, separator := "|", bCaseSense := false) {
+    if !FileExist(inifile) {
+        return 0
+    }
+
+    count := 0
+    var_secqueue := ""
+
+
+
+    Loop  read,  inifile
+    {
+        line := A_LoopReadLine
+        firstChar := SubStr(line, 1, 1)
+        if (firstChar = "[") && InStr(line, "]", bCaseSense) {
+            cur_sec := StrMid2Sub(line, "[", "]")
+            if (cur_sec != "") {
+                count++
+                if (var_secqueue != "")
+                    var_secqueue .= separator
+                var_secqueue .= cur_sec
+            }
+        }
+    }
+
+    return count
+}
+
+read_inikeys(&var_keys, Filename_, bCaseSense := false) {
+    count := 0
+    var_keys := ""
+
+    Loop  read,  Filename_
+    {
+        line := A_LoopReadLine
+        pos := InStr(line, "=")
+        if (pos > 1) {
+            var_key := SubStr(line, 1, pos - 1)
+            var_keys .= var_key "`n"
+            count++
+        }
+    }
+    return count
+}
+
+
+;; 璇诲彇Ini鏂囦欢鍒板唴瀛橈紝杩囨护鎺夋棤鍏崇殑琛岋紝琛屼笌琛屼箣闂寸敤`n闂撮殧锛堥潪`r`n闂撮殧锛�
+IniFileRead(var_fileName) {
+    if !FileExist(var_fileName)
+        return ""
+
+    var_fileContent := FileRead(var_fileName)
+    if var_fileContent = ""
+        return ""
+
+    var_fileContent := StrReplace(var_fileContent, "`r", "")
+    var_newContent := ""
+
+    Loop Parse, var_fileContent, "`n"
+    {
+        var_line := A_LoopField
+        if var_line = ""
+            continue
+
+        var_line := RegExReplace(var_line, "(\s|^)`;.*", "")
+        if var_line = ""
+            continue
+
+        if !InStr(var_line, "=") && !RegExMatch(var_line, "^\[.+\]") {
+            continue
+        }
+
+        var_newContent .= var_line "`n"
+    }
+    return var_newContent
+}
+
+;; 从保存Ini内容的内存中，找到_section节下的内容，返回数组
+SecArrayFromIniMem(_inimem, _section) {
+    if (_inimem = "" || _section = "")
+        return []
+
+    result := []
+    current_section := ""
+
+    Loop Parse, _inimem, "`n"
+    {
+        var_line := A_LoopField
+        if var_line = ""
+            continue
+
+        if RegExMatch(var_line, "^\[(.+)\]", &match) {
+            current_section := match[1]
+        } else if (current_section = _section) {
+            result.Push(var_line)
+        }
+    }
+    return result
+}
+
+
+;; 浠庝繚瀛業ni鍐呭�圭殑鍐呭瓨涓�锛屾壘鍒癬section鑺備笅鐨勫唴瀹癸紝
+;; 骞朵笖淇濆瓨key鍒癬arrkey鎸囦护鐨勬暟缁勪腑, 淇濆瓨Value鍒癬arrvalue鏁扮粍涓�銆�
+;; 杩斿洖_arrkey鐨勪釜鏁�
+SecValueArrayFromIniMem(_inimem, _section, &_arrkey, &_arrvalue)
+{
+    _arrkey := []
+    _arrvalue := []
+
+    if (_inimem == "" || _section == "")
+        return 0
+
+    var_sec := ""
+    lines := StrSplit(_inimem, "`n")
+
+    for line in lines {
+        line := Trim(line)
+        if (line == "")
+            continue
+
+        if RegExMatch(line, "^\[(.+)\]", &m) {
+            var_sec := m[1]
+        } else if (var_sec = _section) {
+            if StrSplit2Sub(line, "=", &key, &val) {
+                _arrkey.Push(key)
+                _arrvalue.Push(val)
+            }
+        }
+    }
+
+    return _arrkey.Length
+}
+AllSecFromIniMem(_inimem) {
+    var_ret := ""
+
+    if !_inimem
+        return ""
+
+    for line in StrSplit(_inimem, "`n") {
+        line := Trim(line)
+        if (line = "")
+            continue
+
+        if RegExMatch(line, "^\[.+\]", &match) {
+            var_sec := RegExReplace(match[], "[\[\]]", "")
+            if (var_sec != "") {
+                if (var_ret != "")
+                    var_ret .= "|"
+                var_ret .= var_sec
+            }
+        }
+    }
+    return var_ret
+}
+
+FindFromIniMem(_inimem, _section, _keyName, _default := "") {
+    if !_inimem || !_section || !_keyName
+        return _default
+
+    var_sec := ""
+
+    for line in StrSplit(_inimem, "`n") {
+        line := Trim(line)
+
+        if RegExMatch(line, "^\[.+\]", &match) {
+            var_sec := RegExReplace(match[], "[\[\]]", "")
+        } else if (var_sec = _section) {
+            varPos := InStr(line, "=")
+            if (varPos > 0) {
+                keyname := Trim(SubStr(line, 1, varPos - 1))
+                if (keyname = _keyName) {
+                    keyvalue := Trim(SubStr(line, varPos + 1))
+                    return keyvalue
+                }
+            }
+        }
+    }
+
+    return _default
+}

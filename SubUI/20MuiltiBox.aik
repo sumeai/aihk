@@ -1,0 +1,299 @@
+/**
+ *@file    20MuiltiBox.aik
+ *@author  teshorse
+ *@date    2012.03.27
+ *@brief   实现简单的Modal模态多功能窗口
+ *
+ *- 目的：调用一个函数MuiltiBox()，就能弹出一个像InputBox一样Modal窗口，并且能否返回值
+ *- 参数：control_参数能够动态指定生成不同类型的控件，从而达到多功能的目的
+ *- 作用：1、可以使用Edit控件提示大文本（可替换MsgBox，由于Edit可以有滚动条，从而可以控制窗口大小）
+ *-		  2、可以替代InputBox可输入多行文本，(Edit控件允许换行符，而不必将`n转换成```n)
+ *-       3、可使用ListView控件从而变成选择窗口（选择某一行按确定键返回选中的条数）。
+ *-		  4、可使用DropList控件选择。
+ *- 衍生：根据不同的目的，MuiltiBox() 可衍生出一系列函数，本质上都是调用MuiltiBox(), 但更方便使用
+ *-		  1、ArraySelectBox() 从指定的数组中选择一项返回。
+ *-		  2、MsgTipBox() 仅提示大文本，替换MsgBox用。
+ *-       3、MsgInputBox() 当要输入多行文本时，可替换InputBox
+ */
+
+; #include ./inc/xml/hotxstring.aik
+; #include ./SubUI/26为飞扬个性输入添加短语.aik
+;#include ..\..\
+;#include .\inc\string.aik
+
+
+ArraySelectBox(title_, prompt_, Array_, field_ := "", width_ := "", height_ := "")
+{
+    opt := ""
+    if (field_ != "")
+        opt .= "lv:" . field_ . "`n"
+    if (width_ != "")
+        opt .= "w:" . width_ . "`n"
+    if (height_ != "")
+        opt .= "h:" . height_ . "`n"
+    
+    outputvar := ""
+    return MuiltiBox(&outputvar, title_, prompt_, Array_, "ArraySelect", opt)
+}
+
+MsgTipBox(title_, prompt_, Text_, width_ := "", height_ := "")
+{
+    if (title_ = "")
+        title_ := "MsgTipBox"
+
+    if (height_ = "")
+    {
+        StartingPos := 0
+        nFind := 0 
+        while (StartingPos := InStr(Text_, "`n", false, StartingPos + 1))
+            nFind++
+        nFind++
+
+        height_ := 12.5 * (nFind + 2)
+        if (height_ < 50)
+            height_ := 50
+        else if (height_ > A_ScreenHeight * 3 / 4)
+            height_ := A_ScreenHeight * 3 / 4
+    }
+
+    if (width_ = "")
+    {
+        width_ := height_ * 4 // 3
+        if (nFind > 0)
+        {
+            var_width := StrLen(Text_) / nFind * 10 + 50
+            if (var_width > width_)
+                width_ := var_width
+        }
+        if (width_ < 300)
+            width_ := 300
+        else if (width_ > A_ScreenWidth * 3 / 4)
+            width_ := A_ScreenWidth * 3 / 4
+    }        
+
+    opt := ""
+    if (width_ != "")
+        opt .= "w:" . width_ . "`n"
+    if (height_ != "")
+        opt .= "h:" . height_ . "`n"
+    
+    outputvar := ""
+    return MuiltiBox(&outputvar, title_, prompt_, Text_, "tip", opt)
+}
+
+MsgInputBox(&output_, title_, prompt_, Text_, width_ := "", height_ := "")
+{
+    if (title_ = "")
+        title_ := "MsgInputBox"
+
+    if (height_ = "")
+    {
+        height_ := A_ScreenHeight // 3
+        if (height_ > 600)
+            height_ := 600
+    }
+    else
+    {
+        if (height_ < 20)
+            height_ := 20
+        else if (height_ > A_ScreenHeight * 3 / 4)
+            height_ := A_ScreenHeight * 3 / 4
+    }
+
+    if (width_ = "")
+    {
+        width_ := A_ScreenWidth // 2
+        if (width_ > 800)
+            width_ := 800
+    }
+    else
+    {
+        if (width_ < 300)
+            width_ := 300
+        else if (width_ > A_ScreenWidth * 3 / 4)
+            width_ := A_ScreenWidth * 3 / 4
+    }
+
+    opt := ""
+    if (width_ != "")
+        opt .= "w:" . width_ . "`n"
+    if (height_ != "")
+        opt .= "h:" . height_ . "`n"
+    
+    return MuiltiBox(&output_, title_, prompt_, Text_, "Input", opt)
+}
+
+MuiltiBox(&OutputVar_, title_, Prompt_, text_, control_, ctrlopt_ := "")
+{
+    var_title := title_
+    var_wintitle := var_title . " ahk_class AutoHotkeyGUI"
+    if (WinExist(var_wintitle))
+    {
+        MsgBox("窗口已经存在")
+        return
+    }
+
+    bClose := false
+    var_return := ""
+    _MuiltiBox_CtrlName := ""
+
+    Arr := text_
+    var_width := ""
+    var_height := ""
+    var_row := ""
+    var_lvfield := ""
+    var_ReadOnly := ""
+
+    ; 分析选项
+    Loop Parse, ctrlopt_, "`n"
+    {
+        if (A_LoopField = "")
+            continue
+
+        if (InStr(A_LoopField, "w:") = 1)
+            var_width := SubStr(A_LoopField, 3)
+        else if (InStr(A_LoopField, "h:") = 1)
+            var_height := SubStr(A_LoopField, 3)
+        else if (InStr(A_LoopField, "r:") = 1)
+            var_row := SubStr(A_LoopField, 3)
+        else if (InStr(A_LoopField, "lv:") = 1)
+            var_lvfield := SubStr(A_LoopField, 4)
+    }
+
+    ; 检查变量
+    var_ctrl := control_
+    if (var_ctrl = "input")
+    {
+        var_ctrl := "Edit"
+    }
+    else if (var_ctrl = "tip")
+    {
+        var_ctrl := "Edit"
+        var_ReadOnly := "ReadOnly"
+    }
+    else if (var_ctrl = "ArraySelect")
+    {
+        var_ctrl := "ListView"
+    }
+
+    if (var_ctrl = "Edit")
+    {
+        _MuiltiBox_CtrlName := text_
+    }
+    else if (var_ctrl = "ListView")
+    {
+        if (var_width <= 0)
+            var_width := 300
+        if (var_height <= 0)
+            var_height := 150
+        if (var_lvfield = "")
+            var_lvfield := "item"
+        _MuiltiBox_CtrlName := var_lvfield
+    }
+    else if (var_ctrl = "listbox")
+    {
+        if (var_width <= 0)
+            var_width := 300
+        if (var_height <= 0)
+            var_height := 150
+        _MuiltiBox_CtrlName := StrReplace(text_, "`n", "|")
+    }
+    else if (var_ctrl = "droplist")
+    {
+        if (var_width <= 0)
+            var_width := 300
+        if (var_height <= 0)
+            var_height := 150
+        if (var_row <= 0)
+            var_row := 5
+        _MuiltiBox_CtrlName := StrReplace(text_, "`n", "|")
+    }
+    else
+    {
+        _MuiltiBox_CtrlName := text_
+    }
+
+    if (var_width != "")
+        var_width := "w" . var_width
+    if (var_height != "")
+        var_height := "h" . var_height
+    if (var_row != "")
+        var_row := "r" . var_row
+
+    ; 显示窗口
+    guiObj := Gui("+OwnDialogs -SysMenu +AlwaysOnTop", var_title)
+    guiObj.Add("Text", , Prompt_)
+    ctrl := guiObj.Add(var_ctrl, var_width . " " . var_height . " " . var_row . " " . var_ReadOnly . " v_MuiltiBox_CtrlName", _MuiltiBox_CtrlName)
+    guiObj.Add("Button", "xm y+15 w70 h28 Default v_MuiltiBox_BtnOK", "确定(&Y)").OnEvent("Click", (*) => OnOK())
+    guiObj.Add("Button", "x+20 w70 h28", "取消(&N)").OnEvent("Click", (*) => OnCancel())
+    
+    if (control_ = "tip")
+    {
+        guiObj["_MuiltiBox_CtrlName"].Enabled := false
+        guiObj["_MuiltiBox_BtnOK"].Focus()
+    }
+
+    ; 如果是ListView，现在显示数据
+    if (var_ctrl = "ListView")
+    {
+        if (control_ = "ArraySelect")
+        {
+            var_temp := %Arr%0
+            Loop var_temp
+            {
+                var_temp := %Arr%%A_Index%
+                ctrl.Add(["Icon1", var_temp])
+            }
+        }
+        else
+        {
+            Loop Parse, text_, "`n"
+                ctrl.Add(["", A_LoopField])
+        }
+    }
+
+    if (control_ = "tip")
+        guiObj["_MuiltiBox_BtnOK"].Focus()
+
+    ; 设置热键
+    Hotkey("IfWinActive", var_wintitle)
+    Hotkey("^Enter", (*) => OnOK())
+    Hotkey("!F4", (*) => OnCancel())
+    Hotkey("Esc", (*) => OnCancel())
+    Hotkey("^BackSpace", (*) => OnCancel())
+    Hotkey("IfWinActive")
+
+    guiObj.Show()
+
+    ; 等待窗口关闭
+    while (!bClose && WinExist(var_wintitle))
+        Sleep(200)
+
+    return var_return
+
+    OnOK()
+    {
+        guiObj.Submit(false)
+        if (var_ctrl = "ListView")
+        {
+            var_return := ctrl.GetNext()
+            if (var_return > 0)
+                OutputVar_ := ctrl.GetText(var_return)
+        }
+        else
+        {
+            OutputVar_ := _MuiltiBox_CtrlName
+            var_return := 1
+        }
+        guiObj.Destroy()
+        bClose := true
+    }
+
+    OnCancel()
+    {
+        _MuiltiBox_CtrlName := ""
+        var_return := 0
+        guiObj.Destroy()
+        bClose := true
+    }
+}

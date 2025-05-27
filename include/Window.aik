@@ -1,0 +1,251 @@
+;; 设置窗口是否总是置顶，并可设置透明度
+;; var_title,var_text 为窗口标题
+;; bool_top 窗口是否置顶
+;#include string.aik
+#include tip.aik
+SetWin_Top_Transparent(var_title, var_text, bool_top := true, var_Transparent := 0, var_Transparent2 := 0)
+{
+	if WinExist(var_title, var_text)
+	{
+		WinGetTransparent := WinGetTransparent(var_title, var_text)
+
+		if bool_top
+			WinSetAlwaysOnTop("On", var_title, var_text)
+
+		if var_Transparent = 0 ; 为0时窗口活动时不透明，非活动时半透明
+		{
+			if WinActive(var_title, var_text)
+			{
+				WinSetTransparent("Off", var_title, var_text)
+			}
+			else
+			{
+				WinSetTransparent(100, var_title, var_text)
+			}
+		}
+		else ; var_Transparent != 0，即设置窗口透明度为此值
+		{
+			if WinActive(var_title, var_text)
+			{
+				if WinGetTransparent != var_Transparent
+					WinSetTransparent(var_Transparent, var_title, var_text)
+			}
+			else
+			{
+				if var_Transparent2 = 0
+				{
+					if WinGetTransparent != var_Transparent
+						WinSetTransparent(var_Transparent, var_title, var_text)
+				}
+				else
+				{
+					if WinGetTransparent != var_Transparent2
+						WinSetTransparent(var_Transparent2, var_title, var_text)
+				}
+			}
+		}
+	}
+}
+
+WinGetTransparent(title?, text?)
+{
+	try
+		return WinGetTransparent("ahk_id " WinExist(title?, text?))
+	catch
+		return -1
+}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 实现鼠标移动到指定窗口，该窗口会自动变换透明度
+SetWin_Top_autoTransparent(var_title, var_text, bool_top := true, var_Transparent1 := 240, var_Transparent2 := 200, var_Transparent3 := 180, var_Transparent4 := 80)
+{
+	if WinExist(var_title, var_text)
+	{
+		var_x := var_y := var_width := var_height := 0
+		WinGetPos(&var_x, &var_y, &var_width, &var_height, var_title, var_text)
+
+		CoordMode("Mouse", "Screen")
+		MouseGetPos(&mouseVarX, &mouseVarY)
+
+		if (mouseVarX > var_x && mouseVarX < var_x + var_width && mouseVarY > var_y + 50 && mouseVarY < var_y + var_height)
+			SetWin_Top_Transparent(var_title, var_text, bool_top, var_Transparent1, var_Transparent2)
+		else
+			SetWin_Top_Transparent(var_title, var_text, bool_top, var_Transparent3, var_Transparent4)
+
+		CoordMode("Mouse", "Relative")
+	}
+}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;   移动活动窗口
+moveactivewindow(var_dx, var_dy)
+{
+	KeyWait("a", "D L T0.3")
+	WinGetPos(&var_x, &var_y, &var_width, &var_height, "A")
+	var_x += var_dx
+	var_y += var_dy
+	WinMove("A", , var_x, var_y)
+}
+
+
+; The following function centers the specified window on the screen:
+CenterWindow(WinTitle := "A")
+{
+	Width := Height := 0
+	WinGetPos(,, &Width, &Height, WinTitle)
+	x := (A_ScreenWidth // 2) - (Width // 2)
+	y := (A_ScreenHeight // 2) - (Height // 2)
+	WinMove(WinTitle, , x, y)
+}
+
+CenterActiveWindow()
+{
+	WinTitle := ""
+	WinGetTitle(&WinTitle, "A")
+	Width := Height := 0
+	WinGetPos(,, &Width, &Height, WinTitle)
+	x := (A_ScreenWidth // 2) - (Width // 2)
+	y := (A_ScreenHeight // 2) - (Height // 2)
+	WinMove(WinTitle, , x, y)
+}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 更改当前窗口的大小
+ResetActiveWindowRect(newwidth, newheight)
+{
+	WinRestore("A")
+	WinGetPos(&var_x, &var_y, &var_width, &var_height, "A")
+	Sleep(100)
+	WinMove("A", , var_x, var_y, newwidth, newheight)
+}
+
+;;------窗口最大化最小化-------------------------------
+IsWinMax(WinTitle := "A", WinText := "")
+{
+	try OutputVar := WinGetMinMax(WinTitle, WinText)
+	return OutputVar = 1
+}
+
+IsWinMin(WinTitle := "A", WinText := "")
+{
+	try OutputVar := WinGetMinMax(WinTitle, WinText)
+	return OutputVar = -1
+}
+
+IsWinTopMost(WinTitle := "A", WinText := "")
+{
+	ExStyle := WinGetExStyle(WinTitle, WinText)
+	return (ExStyle & 0x8) != 0
+}
+
+GetWinAlpha(WinTitle := "A", WinText := "")
+{
+	try var_alpha := WinGetTransparent(WinTitle, WinText)
+	if var_alpha = ""
+		var_alpha := 255
+	return var_alpha
+}
+∑最大化窗口(WinTitle := "A", WinText := "")
+{
+	WinMaximize(WinTitle, WinText)
+}
+
+∑最小化窗口(WinTitle := "A", WinText := "")
+{
+	WinMinimize(WinTitle, WinText)
+}
+
+∑还原窗口(WinTitle := "A", WinText := "")
+{
+	WinRestore(WinTitle, WinText)
+}
+
+∑最大化或还原窗口(WinTitle := "A", WinText := "")
+{
+	OutputVar := WinGetMinMax(WinTitle, WinText)
+	if OutputVar = 0
+		WinMaximize(WinTitle, WinText)
+	else
+		WinRestore(WinTitle, WinText)
+}
+
+∑设置窗口置顶(WinTitle := "A", WinText := "")
+{
+	WinSetAlwaysOnTop("On", WinTitle, WinText)
+	tipx(20, "窗口已置顶")
+}
+
+∑取消窗口置顶(WinTitle := "A", WinText := "")
+{
+	WinSetAlwaysOnTop("Off", WinTitle, WinText)
+	tipx(20, "取消窗口置顶")
+}
+
+∑设置鼠标下窗口置顶()
+{
+	MouseGetPos(, , &UMWID)
+	WinSetAlwaysOnTop("On", "ahk_id " UMWID)
+	tipx(20, "窗口已置顶")
+}
+
+∑取消鼠标下窗口置顶()
+{
+	MouseGetPos(, , &UMWID)
+	WinSetAlwaysOnTop("Off", "ahk_id " UMWID)
+	tipx(20, "取消窗口置顶")
+}
+
+∑关闭窗口(WinTitle := "A", WinText := "", isAsk := false)
+{
+	if !isAsk
+	{
+		WinClose(WinTitle, WinText)
+		return
+	}
+
+	if WinTitle = "A"
+	{
+		WinGetTitle(&TitleTip, "A")
+	}
+	else
+	{
+		TitleTip := WinTitle
+	}
+
+	MsgResult := MsgBox("当前窗口标题：【" TitleTip "】`n`n确定要关闭它吗？", "关闭指定窗口", "YesNo")
+	if MsgResult = "Yes"
+		WinClose(WinTitle, WinText)
+
+}
+
+∑调整窗口大小(newwidth, newheight, WinTitle := "A", WinText := "")
+{
+	WinRestore(WinTitle, WinText)
+	WinGetPos(&var_x, &var_y, &var_width, &var_height, WinTitle, WinText)
+
+	if (newwidth = "")
+		newwidth := var_width
+
+	if (newheight = "")
+		newheight := var_height
+
+	if (newwidth == var_width && newheight == var_height)
+		return
+
+	WinMove(WinTitle, WinText, var_x, var_y, newwidth, newheight)
+}
+
+
+;; 窗口是否资源管理器
+IsExploreWindow(WinClass_ := "A")
+{
+	if (WinClass_ = "")
+		WinGetClass(&WinClass_, "A")
+	else if (WinClass_ = "A")
+		WinGetClass(&WinClass_, "A")
+
+	if (WinClass_ = "CabinetWClass" || WinClass_ = "ExploreWClass" || WinClass_ = "Progman")
+		return true
+
+	return false
+}

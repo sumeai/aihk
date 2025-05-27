@@ -1,0 +1,103 @@
+InputListBox(var_strList, _Prompt := "输入命令")
+{
+    global _InputListBox_ComboBox
+    if var_strList = ""
+        return
+
+    bClose := false	;; 是否已经关闭窗口
+    var_return := ""
+    var_bAutoList := true	;; 暂时停止自动刷新下拉列表，方便使用ＵＰ／Ｄｏｗｎ方向键选择下拉列表项
+    var_title := "我的Input窗口"
+    var_wintitle := var_title " ahk_class AutoHotkeyGUI"
+
+    if WinExist(var_wintitle)
+    {
+        MsgBox "窗口已经存在"
+        return
+    }
+
+    Gui22 := Gui("+OwnDialogs -SysMenu", var_title)
+    Gui22.Add("Text", "x10 y2 w330 h50", _Prompt)
+    _InputListBox_ComboBox := Gui22.Add("ComboBox", "x11 y22 w310 h25 R15 v_InputListBox_ComboBox", var_strList).OnEvent("Click", 我的Input窗口_输入框)
+    Gui22.Add("Button", "x56 y60 w80 h25 Default", "确定(&Y)").OnEvent("Click", (*) => 我的Input窗口_确定按钮())
+    Gui22.Add("Button", "x196 y60 w80 h25", "取消(&N)").OnEvent("Click", (*) => 我的Input窗口_取消按钮())
+
+    Gui22.Show("h98 w333")
+
+    ControlShowDropDown("ComboBox1", var_wintitle)
+    _InputListBox_ComboBox.Focus()
+
+    HotIfWinActive(var_wintitle)
+    Hotkey("~Up", (*) => 我的Input窗口_停止自动刷新())
+    Hotkey("~Down", (*) => 我的Input窗口_停止自动刷新())
+    Hotkey("!F4", (*) => 我的Input窗口_取消按钮())
+    HotIfWinActive()
+
+    var_preMyinput := ""
+
+    Loop {
+        Sleep 200
+        if bClose || !WinExist(var_wintitle)
+            break
+    }
+
+    return var_return
+
+
+	我的Input窗口_输入框(){
+
+		var_temp := ControlGetText("Edit1", var_wintitle)
+		if var_temp != var_preMyinput {
+			var_preMyinput := var_temp
+			if !var_bAutoList {
+				var_bAutoList := true
+				return
+			}
+			findList := ""
+			if var_temp != "" {
+				for item in StrSplit(var_strList, "|") {
+					if item != "" && InStr(item, var_temp)
+						findList .= item "|"
+				}
+			}
+
+			ControlHideDropDown("ComboBox1", var_wintitle)
+			if (var_temp != "" && findList = var_temp) {
+				ControlHideDropDown("ComboBox1", var_wintitle)
+			}
+			else if findList != "" {
+				Gui22.Submit(false)
+				_InputListBox_ComboBox.Text := findList
+				ControlShowDropDown("ComboBox1", var_wintitle)
+			} else {
+				Gui22.Submit(false)
+				_InputListBox_ComboBox.Text := var_strList
+			}
+
+			_InputListBox_ComboBox.Text := var_temp
+
+			Send("{End}")
+		}
+	}
+
+    我的Input窗口_确定按钮() {
+        global var_return, bClose, _InputListBox_ComboBox
+        Gui22.Submit(false)
+        var_return := _InputListBox_ComboBox
+        Gui22.Destroy()
+        bClose := true
+    }
+
+    我的Input窗口_取消按钮() {
+        global var_return, bClose, _InputListBox_ComboBox
+        _InputListBox_ComboBox := ""
+        var_return := ""
+        Gui22.Destroy()
+        bClose := true
+    }
+
+    我的Input窗口_停止自动刷新() {
+        global var_bAutoList
+        var_bAutoList := false
+    }
+}

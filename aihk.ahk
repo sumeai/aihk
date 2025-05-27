@@ -1,66 +1,72 @@
-﻿;; 确保以管理员的身份启动程序
-if not A_IsAdmin
-{
-    Run("*RunAs " A_ScriptFullPath)
-    ExitApp()
+﻿;; 创建开机自动启动的任务计划 AihkStartupTask
+CreateTaskIfNotExists("AihkStartupTask", A_ScriptFullPath)
+
+;; 1. 首先删除 aihk_run.ahk（后续重新创建）
+if FileExist("aihk_run.ahk") {
+    filedelete("aihk_run.ahk")
 }
 
-
-#include ./src/alt_vim.ahk
-#include ./src/switch_keyboard.ahk
-#include ./src/capslock.ahk
-#include ./src/360se.ahk
+;; 2. 读取 aihk_main.ahk 内容，用于重新构建 aihk_run.ahk 文件
+scriptContent := FileRead("aihk_main.ahk")
 
 
-!Pause:: reload
-#Pause:: 
-{
-    IB := InputBox("临时运行以下AHK脚本", "运行AHK脚本", "w600 h120", A_Clipboard)
-    if IB.Result = "Cancel"
+;; 3. 读取 /user 目录下所有的.ahk文件，补充到aihk_run.ahk
+if DirExist("./user") {
+    Loop Files, "./user/*", "D" ; "D" specifies that only directories are returned
     {
-        ToolTip "取消运行"
-        SetTimer () => ToolTip(), -1000 
-    }
-    else
-    {
-        if FileExist("tempscript.ahk")
+        Loop Files, A_LoopFileFullPath "/*.ahk", "R" ; "R" recursively searches subdirectories for .ahk files
         {
-            filedelete "tempscript.ahk"
-            sleep 100
+            if (!instr(A_LoopFileFullPath, ".ahk~")) 
+            {
+                scriptContent .= FileRead(A_LoopFileFullPath) "`n"
+            }
         }
-        fileappend IB.value,"tempscript.ahk"
-        sleep 100
-        run "tempscript.ahk"
     }
 }
 
-;:*:ahkhelp2;::run 'https://www.autohotkey.com/docs/v2/index.htm'
-:*:ahkhelp;::
-{
-    run StrReplace(a_ahkpath, "64.exe", ".chm")
-}
 
-:*:ahkspy;::
-{
-    SplitPath a_ahkpath, &name, &dir, &ext, &name_no_ext, &drive 
-    run StrReplace(dir, "v2", "WindowSpy.ahk")
-}
 
-::;ahkroot::
-{
-    run A_scriptDir
-}
+ scriptContent .=  "#Hotif"
 
-::;ahksrc::
+fileappend(scriptContent, "aihk_run.ahk")
+
+;; 4. 等待 aihk_run.ahk 文件生成，然后执行 aihk_run.ahk文件
+loop 5
 {
-    run A_scriptDir . "/src"
+    sleep 500
+    if FileExist("aihk_run.ahk") {
+        run "aihk_run.ahk"
+        exitapp
+    }
 }
 
 
-#include ./src/win/gvim.ahk
-#include ./src/win/feishu.ahk
-#include ./src/win/vscode.ahk
+;; 检查 taskName 任务是否已经存在
+TaskExists(taskName) {
+    output := ""
+    RunWait("cmd.exe /c schtasks /Query /TN " taskName, , , &output)
+    return InStr(output, taskName)
+}
 
-#include ./user/kairui/idea.ahk
+;; 如果 taskName 不存在，则创建任务计划
+CreateTaskIfNotExists(taskName, scriptPath) {
+    if TaskExists(taskName) {
+        MsgBox "任务已存在: " taskName
+        return
+    }
 
-#Hotif
+    cmd := Format(
+        'cmd.exe /c schtasks /Create /TN "{}" /TR "{}" /SC ONSTART /RL HIGHEST /F /RU SYSTEM',
+        taskName, scriptPath
+    )
+    Run('*RunAs ' cmd, , 'Hide')
+
+    ;; 以下代码执行失败
+    ; cmd := Format(
+    ;     'schtasks /Create /TN "{}" /TR "{}" /SC ONSTART /RL HIGHEST /F /RU SYSTEM',
+    ;     taskName, scriptPath
+    ; )
+    ; Run('*RunAs ' cmd)
+
+    MsgBox "任务已创建: " taskName
+}

@@ -1,0 +1,648 @@
+/**
+ *@file    ShortcutMenu.aik
+ *@author  teshorse
+ *@date    2011.09.15
+ *@brief   生成快捷菜单
+ *
+ * 这里定义的Lables也可能被其他文件引用和调用
+ */
+#include Window.aik
+
+CreateMenuByIni(menu_, param := "A", inimem := "", bShow := true) {
+    global g_ATitle, g_iniMenumem, g_iniMenumem_alluser, g_clip
+
+    oldclip := ClipboardAll()
+    inifile := "ShortcutMenu.ini"
+    bNeedClip := false
+    NeedClipMenuList := "编辑选中文本菜单"
+
+    if !FileExist(inifile)
+        InitShortcutMenuIniFile()
+
+    if menu_ = ""
+        return 
+
+    if param = "A" {
+        WinGetID := WinGetID("A")
+        g_ATitle := "ahk_id " WinGetID
+    } else {
+        g_ATitle := param
+    }
+
+    if inimem = ""
+        g_iniMenumem := IniFileRead(inifile)
+    else
+        g_iniMenumem := inimem
+
+    if g_iniMenumem_alluser = ""
+        g_iniMenumem_alluser := IniFileRead("..\\ShortcutMenu.ini")
+
+    if (g_iniMenumem = "" && g_iniMenumem_alluser = "")
+        return 
+
+	;; 如果是需要复制选中文本的菜单，则先复制
+    g_clip := ""
+    A_Clipboard := ""
+
+    if InStrList(NeedClipMenuList, menu_, "|") > 0 {
+        Send("^c")
+        bNeedClip := true
+    } else if InStr(menu_, "^c") {	 ;; 如果菜单名中包含^c字样，则发送CTRL+C复制
+        Send("^c")
+        bNeedClip := true
+    }
+
+
+	;; 创建菜单
+    menuObj := CreateMenu(menu_, g_iniMenumem)
+
+
+	;; 显示菜单
+    if bShow && menuObj
+        menuObj.Show()
+
+
+	;; 如果使用的剪贴板，则还原剪贴板的旧内容
+    if !bNeedClip
+        A_Clipboard := oldclip
+
+    return menuObj
+}
+;;---------------------------------------------------------------------------
+;; 菜单 执行
+GetMenuMap(){
+    static g_menu_map := Map()
+    return g_menu_map
+}
+
+CreateMenu(menu_, inimem_)
+{
+    g_menu_map := GetMenuMap()
+
+    
+    ; static g_iMenu := 0
+    ; static g_iMenuList := []
+    ; g_iMenu++
+    ; menuArray := []
+
+    ; 如果该菜单已经创建过了，则直接返回
+    if g_menu_map.Has(menu_)
+        return g_menu_map[menu_]
+
+    newMenuObj := Menu()
+
+
+
+    isDefine := false
+
+    ; 检查inimem_是否有定义菜单menu_，否则尝试从公共菜单配置文件读取
+    menuArray := SecArrayFromIniMem(inimem_, menu_)
+    if (IsSet(menuArray) && menuArray.Length)
+    {
+        isDefine := true
+    }
+    else if (FileExist("..\ShortcutMenu.ini"))
+    {
+        menuArray := SecArrayFromIniMem(g_iniMenumem_alluser, menu_)
+        if ( IsSet(menuArray) && menuArray.Length )
+            isDefine := true
+    }
+
+    ; 如果在配置文件中定义了指定菜单，则创建之
+    if (!isDefine)
+    {
+        return
+    }
+
+    for _, line in menuArray
+    {
+        if (!InStr(line, "="))
+            continue
+
+        StrSplit2Sub(line, "=", &keyName, &keyValue)
+
+        if (keyName = "" || keyValue = "")
+            continue
+
+        ; 分解选项与菜单项
+        cmd := cmdStringSplit(keyValue, &opt)
+
+        ; 分析菜单项选项
+        if (InStrList(opt, "0", "|") > 0)
+            continue
+        else if (InStrList(opt, "submenu", "|") > 0)
+        {
+            subMenuNamed := menu_ . "|" . cmd
+            subMenuObj := CreateMenu(subMenuNamed, inimem_)
+            newMenuObj.Add(keyName, subMenuObj)
+            if (InStr(cmd, "^c"))
+            {
+                if (A_Clipboard = "")
+                    Send("^c")
+            }
+        }
+        else
+        {
+            if (keyName = "------")
+                newMenuObj.Add()
+            else if (IsValidCmd(keyValue))
+                newMenuObj.Add(keyName, 通用菜单通用处理模块)
+        }
+    }
+    
+
+    g_menu_map[menu_] := newMenuObj
+    return newMenuObj
+}
+
+通用菜单通用处理模块(ItemName, ItemPos, MyMenu) {
+    global g_iniMenumem, g_cmdString, g_iniMenumem_alluser, g_thisMenu, g_ThisMenuItem
+    ; 通用菜单处理逻辑，需要根据实际需求实现
+	; 【通用菜单通用处理模块】
+	if g_iniMenumem = ""
+	    return
+
+    thisMenu := MyMenu
+
+	g_cmdString := FindFromIniMem(g_iniMenumem, thisMenu, ItemName, "")
+
+	; 如果没有命令，则尝试从公共配置文件中获取命令
+	if g_cmdString = ""
+	    g_cmdString := FindFromIniMem(g_iniMenumem_alluser, thisMenu, ItemName, "")
+
+	if g_cmdString = ""
+	{
+	    MsgBox "菜单[" thisMenu "]下的<" ItemName "> 没有可执行命令！"
+	}
+	else
+	{
+	    g_thisMenu := thisMenu
+	    g_ThisMenuItem := ItemName
+	    Sleep 100
+	    run_cmd(g_cmdString)
+	}
+	return
+}
+
+
+【菜单调整当前窗口大小】(ItemName, ItemPos, MyMenu)
+{
+	global g_is_调整窗口大小
+	
+	if g_is_调整窗口大小
+	{
+        MyMenu.Delete()
+	    ; MenuDelete("调整窗口大小")
+	}
+
+    menuObj := CreateMenuByIni("调整窗口大小", "A", "", false)
+
+	if menuObj
+	{
+	    g_is_调整窗口大小 := true
+
+	    var_list := ReadTempIni("菜单调整当前窗口大小", "recent")
+	    if var_list != ""
+	    {
+	        OutputArray := StrSplit(var_list, "|")
+	        Loop OutputArray.Length
+	        {
+	            var_item := OutputArray[A_Index]
+	            if var_item = ""
+	                continue
+
+                menuObj.Add("&" A_Index " 调整到 ( " var_item " )", 【调整窗口大小_最近大小】)
+	        }
+	    }
+
+        menuObj.Show()
+	}
+	return
+}
+【调整窗口大小_最近大小】(ItemName, ItemPos, MyMenu)
+{
+    Sleep 100
+    var_temp := StrMid2Sub(ItemName, "(", ")")
+    if var_temp != ""
+    {
+        StrSplit2Sub(var_temp, "*", &W, &H)
+        ∑调整当前窗口为预设大小(W, H)
+    }
+    return
+}
+
+【添加当前窗口大小到最近列表】(ItemName)
+{
+    WinGetPos(, , &W, &H, "A")
+    MsgBoxResult := MsgBox("当前窗口大小（" W " * " H "）`n确定添加？", "确认添加当前窗口大小到最近列表", "YesNo")  ; 4 = Yes/No
+    if MsgBoxResult = "Yes"
+    {
+        ∑保存窗口大小到最近列表(W, H)
+    }
+    return
+}
+
+【管理窗口大小最近列表】(*)
+{
+    var_root := ∑获取根目录()
+    var_file := var_root "\bin\dict\dict.ahk"
+    var_param :=
+    "
+    (
+    file:temp.ini
+    seclist:菜单调整当前窗口大小
+    title:菜单调整当前窗口大小
+    cursec:菜单调整当前窗口大小
+    curkey:recent
+    )"
+    run_ahk(var_file, var_param, A_WorkingDir)
+    return
+}
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Lables
+【右键菜单_整齐地在行尾添加字符】(*)
+{
+    global A_Clipboard
+    var_root := ∑获取根目录()
+    var_file := var_root "\bin\Doxgen\复制并在每行末尾整齐地添加行尾注释号.ahk"
+    var_param := "|" A_Clipboard
+    run_ahk(var_file, var_param)
+    return
+}
+
+【右键菜单_生成doxyGen风格的函数注释】(*)
+{
+    var_root := ∑获取根目录()
+    var_file := var_root "\bin\Doxgen\复制函数声明得到函数注释.ahk"
+    run_ahk(var_file, A_Clipboard)
+    return
+}
+
+【右键菜单_注释选中的内容】(*)
+{
+    block_selected_text("/*", "*/")
+    return
+}
+
+【右键菜单_在行首添加字符】(*)
+{
+    ∑在选中的行行首添加字符()
+    return
+}
+
+【测试1】(*)
+{
+    MsgBox "11111111111"
+    return
+}
+
+【测试2】(*)
+{
+    MsgBox "22222222"
+    return
+}
+
+【测试3】(*)
+{
+    MsgBox "33333333"
+    return
+}
+
+【测试4】(*)
+{
+    MsgBox "4444444444444"
+    return
+}
+
+【最大化当前窗口】(*)
+{
+    Sleep 100
+    ∑最大化窗口("A")
+    return
+}
+
+【最小化当前窗口】(*)
+{
+    Sleep 100
+    ∑最小化窗口("A")
+    return
+}
+
+【还原当前窗口】(*)
+{
+    Sleep 100
+    ∑还原窗口("A")
+    return
+}
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 相关函数
+∑在选中的行行首添加字符() {
+    A_Clipboard := ""
+    Sleep 100
+    Send "^c"
+    Sleep 200
+    if A_Clipboard = ""
+        return
+
+    clipboard := StrReplace(A_Clipboard, "`r`n", "`n")
+    clipboard := StrReplace(clipboard, "`r", "`n")
+
+    var_input := MyInput("行首增加字符", "请输入要添加到行首的字符（串）")
+    if var_input = ""
+        return
+
+    var_input := StrReplace(var_input, "``t", "`t")
+    var_input := StrReplace(var_input, "\t", "`t")
+    var_input := StrReplace(var_input, "tab", "`t")
+    var_input := StrReplace(var_input, "``r``n", "`r`n")
+    var_input := StrReplace(var_input, "``n", "`r`n")
+    var_input := StrReplace(var_input, "``r", "`r`n")
+    var_input := StrReplace(var_input, "enter", "`r`n")
+
+    var_clip := ""
+    Loop Parse, clipboard, "`n" {
+        if A_LoopField = ""
+            var_clip .= "`n"
+        else if var_clip = ""
+            var_clip := var_input A_LoopField
+        else
+            var_clip .= "`n" var_input A_LoopField
+    }
+    A_Clipboard := var_clip
+    Sleep 200
+    Send "^v"
+}
+
+【调整窗口大小_自定义大小】(*)
+{
+    Sleep 100
+    str_input := MyInput("设置窗口宽度和高度", "请指定宽度和高度: Width * Height", "800 * 600")
+    if str_input = ""
+        return
+    if !InStr(str_input, "*")
+        return
+
+    arr := StrSplit(str_input, "*")
+    W := Trim(arr[1])
+    H := Trim(arr[2])
+    ∑调整当前窗口为预设大小(W, H)
+    return
+}
+
+∑调整当前窗口为预设大小(W, H) {
+    WinGetPos(, , &Y, , "ahk_class Shell_TrayWnd")	;; 获得任务栏的高
+    taskH := Y
+    deskH := A_ScreenHeight - taskH	;; 除去任务栏后的桌面高度
+    if H > deskH
+        H := deskH
+
+    Sleep 100
+    ∑调整窗口大小(W, H, "A")
+    ∑保存窗口大小到最近列表(W, H)
+}
+
+∑保存窗口大小到最近列表(W, H) {
+	;; 保存最近调整的窗口大小，以便添加到快捷菜单
+    W := Trim(W)
+    H := Trim(H)
+    var_item := W " * " H
+    var_list := ReadTempIni("菜单调整当前窗口大小", "recent")
+    ∑Add字符串队列(&var_list, var_item, "|", true, 5)
+    WriteTempIni("菜单调整当前窗口大小", "recent", var_list)
+}
+【移动当前窗口到屏幕左上角】(*)
+{
+    Sleep 100
+    WinMove(0, 0, , , "A")
+    return
+}
+
+【移动当前窗口到屏幕中央】(*)
+{
+    Sleep 100
+    CenterWindow("A")
+    return
+}
+
+【移动当前窗口到屏幕右下角】(*)
+{
+    Sleep 100
+    WinGetPos(,, &W, &H, "A")
+    X := A_ScreenWidth - W - 5
+    Y := GetDeskHeight() - H - 5
+    WinMove(X, Y, , , "A")
+    return
+}
+
+【移动当前窗口到屏幕右上角】(*)
+{
+    Sleep 100
+    WinGetPos(,, &W, &H, "A")
+    X := A_ScreenWidth - W - 5
+    WinMove(X, 0, , , "A")
+    return
+}
+
+【移动当前窗口到屏幕左下角】(*)
+{
+    Sleep 100
+    WinGetPos(,, &W, &H, "A")
+    Y := GetDeskHeight() - H - 5
+    WinMove(0, Y, , , "A")
+    return
+}
+
+【置顶当前窗口】(*)
+{
+    Sleep 100
+    WinSetAlwaysOnTop("Toggle", "A")
+    if IsWinTopMost("A")
+        tipx(20, "窗口最前", 1000)
+    else
+        tipx(20, "取消置顶", 1000)
+    return
+}
+【创建菜单外部工具编辑选中文本】(*) {
+    global g_EditPath := ""
+
+    menuObj := CreateMenuByIni("菜单外部工具编辑选中文本", "A", "", false)
+
+    if !menuObj {
+        tooltip7("菜单未定义[菜单外部工具编辑选中文本]")
+        return
+    }
+
+    ; 使用VIM编辑
+    var_vimpath := RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\Vim\GVim", "path")
+    if  var_vimpath != "" {
+        menuObj.Add( "&VIM", 【使用VIM编辑选中的文本】)
+    }
+
+    ; 使用EmEditor编辑
+    var_read := read_ini("launchy.ini", "file", "emedit", "")
+    if var_read != "" {
+        var_pos := InStr(var_read, "|")
+        if var_pos > 0
+            var_empath := SubStr(var_read, 1, var_pos - 1)
+        else
+            var_empath := var_read
+
+        if FileExist(var_empath) {
+            g_EditPath := var_empath
+            menuObj.Add( "&EmEditor", 【使用指定文本编辑器打开选中文本】)
+        }
+    }
+
+    ; 使用UE编辑
+    var_read := read_ini("launchy.ini", "file", "UltraEdit", "")
+    if var_read != "" {
+        var_pos := InStr(var_read, "|")
+        if var_pos > 0
+            var_uepath := SubStr(var_read, 1, var_pos - 1)
+        else
+            var_uepath := var_read
+
+        if FileExist(var_uepath) {
+            g_EditPath := var_uepath
+            menuObj.Add( "&UtralEidt", 【使用指定文本编辑器打开选中文本】)
+        }
+    }
+
+    ; 使用记事本编辑
+    menuObj.Add( "记事本(&N)", 【使用NotePad编辑选中的文本】)
+    return menuObj
+}
+
+【使用VIM编辑选中的文本】() {
+    Run("notepad.exe C:\\000.txt")
+}
+
+
+【使用NotePad编辑选中的文本】() {
+    Run("notepad.exe C:\\000.txt")
+}
+
+【使用指定文本编辑器打开选中文本】(*) {
+    global g_EditPath
+    if g_EditPath != "" {
+        var_root := ∑获取根目录()
+        var_file := var_root "\bin\文本文件处理\用指定工具编辑选中文本.ahk"
+        var_param := '"' g_EditPath '"'
+        run_ahk(var_file, var_param)
+    }
+    return
+}
+
+【菜单外部编辑选中文本】(*) {
+    menuObj := 【创建菜单外部工具编辑选中文本】()
+    menuObj.Show()
+    return
+}
+
+【菜单编辑选中文本】(*) {
+    Send("^c")
+    menuObj := CreateMenuByIni("菜单编辑选中文本", "A", "", false) 
+    if !menuObj {
+        tooltip7("菜单未定义[菜单外部工具编辑选中文本]")
+        return
+    }
+    
+    subMenuObj := CreateMenuByIni("编辑选中代码菜单", "A", "", false)
+    if subMenuObj {
+        menuObj.add("代码 &d", subMenuObj)
+    }
+
+    menuEditor := 【创建菜单外部工具编辑选中文本】()
+
+    menuObj.add("外编 &e", menuEditor)
+    menuObj.Show()
+    return
+}
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 增强右捷菜单
+【增强右捷菜单】(*)  {
+    if IsExploreWindow() {
+        var_file := ∑获取根目录() "\bin\explore\ExploreMenu.ahk"
+        run_ahk(var_file)
+    } else {
+        CmdStringTip("")
+    }
+    return
+}
+
+InitShortcutMenuIniFile() {
+    var_temp2 := "
+(
+[编辑选中代码菜单]
+整齐地在行尾添加字符(&E)=1|gosub)【右键菜单_整齐地在行尾添加字符】
+生成doxyGen风格的函数注释(&F)=1|gosub)【右键菜单_生成doxyGen风格的函数注释】
+/* 选中的内容 */ (&/)=1|gosub)【右键菜单_注释选中的内容】
+在行首添加字符(&A)=1|gosub)【右键菜单_在行首添加字符】
+整理代码空格 (&Z)=1|gosub)【复制并调整选中代码的空格】
+
+[调整窗口到预设大小]
+&1 ( 350 * 250 )  =1|func)∑调整当前窗口为预设大小(350,250)
+&2 ( 640 * 480 )  =1|func)∑调整当前窗口为预设大小(640,480)
+&3 ( 800 * 600 )  =1|func)∑调整当前窗口为预设大小(800,600)
+&4 ( 1204 * 768 ) =1|func)∑调整当前窗口为预设大小(1204,768)
+&5 ( 1152 * 864 ) =1|func)∑调整当前窗口为预设大小(1152,864)
+&6 ( 1280 * 768 ) =1|func)∑调整当前窗口为预设大小(1280,768)
+&7 ( 1280 * 1024 )=1|func)∑调整当前窗口为预设大小(1280,1024)
+&8 ( 1600 * 1200 )=1|func)∑调整当前窗口为预设大小(1600,1200)
+&9 ( 1680 * 1050 )=1|func)∑调整当前窗口为预设大小(1680,1050)
+
+[调整窗口大小]
+最大化当前窗口 &X=1|gosub)【最大化当前窗口】
+最小化当前窗口 &N=1|gosub)【最小化当前窗口】
+还原当前窗口 &R=1|gosub)【还原当前窗口】
+------=1)
+自定义窗口大小 &C=1|gosub)【调整窗口大小_自定义大小】
+添加当前窗口大小 &S=1|gosub)【添加当前窗口大小到最近列表】
+管理最近窗口大小 &M=1|gosub)【管理窗口大小最近列表】
+------=1)
+&0 预设大小=1|submenu)调整窗口到预设大小
+
+[窗口常用菜单]
+窗口最前面 &T=1|gosub)【置顶当前窗口】
+窗口透明度 &A=1|gosub)【调节窗口透明度】
+◎屏幕中央 &5=1|gosub)【移动当前窗口到屏幕中央】
+移动至 &M=1|submenu)窗口移动至屏幕角落
+
+[窗口移动至屏幕角落]
+↖屏幕左上角 &7=1|gosub)【移动当前窗口到屏幕左上角】
+↗屏幕右上角 &9=1|gosub)【移动当前窗口到屏幕右上角】
+↘屏幕右下角 &3=1|gosub)【移动当前窗口到屏幕右下角】
+↙屏幕左下角 &1=1|gosub)【移动当前窗口到屏幕左下角】
+
+[^c搜索选中文本]
+&Baidu=1|run)http://www.baidu.com/s?wd=$clip$
+&Google=1|run)http://www.google.com/search?q=$clip$&hl=en&sourceid=gd&rlz=1Q1GGLD_zh-CNCN421&aq=t
+&Enkoo=1|run)http://www.engkoo.com/#$clip$
+&i词霸=1|run)http://www.iciba.com/$clip$
+
+[菜单编辑选中文本]
+剪切 &x=1|send)^x
+复制 &c=1|send)^c
+搜索 &s=1|submenu)^c搜索选中文本
+
+[菜单外部工具编辑选中文本]
+&UltraEdit=1|gosub|launchy:UltraEdit)【使用外部编辑器编辑选中的文本】
+&EmEdit=1|gosub|launchy:em)【使用外部编辑器编辑选中的文本】
+
+[^c菜单复制文本作为配置]
+飞扬命令窗口 &R=1|gosub)【添加飞扬命令窗口】
+飞扬命令串   &C=1|gosub)【复制为飞扬命令串】
+飞扬个性短语 &I=1|gosub)【添加飞扬个性短语】
+)"
+
+    var_root := ∑获取根目录() "/Users/ShortcutMenu.ini"
+    var_temp := IniFileRead(var_root)
+    FileAppend(var_temp, "ShortcutMenu.ini")
+}
+#include common.aik
+#include inifile.aik
+#Include cmdstring.aik
+#include path.aik
+

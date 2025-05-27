@@ -1,0 +1,285 @@
+;; 超级字符串，可带有选项的字符串，可执行的字符串
+;; 例如 1R)d:\000\test.txt
+
+#include ShortcutMenu.aik
+#include Array.aik
+#include tip.aik
+
+;; 将cmdString的选项与字符串进行分离，得到opt_ = 1R 和 返回字符串d:\000\test.txt
+cmdStringSplit(cmdstr, &opt_) {
+    arr := StrSplit(cmdstr, ")")
+    opt_ := arr[1]
+    return arr[2]
+}
+
+
+
+;; cmdstr 是否飞扬命令串格式
+IsCmdString(cmdstr) {
+    return RegExMatch(cmdstr, "^[^(]*\)") > 0
+}
+
+;; 在cmdString的opt选项列表中，查找指定的某个选项optname_
+;; 查找失败返回 false，查找成功返回true
+;; 举例：optlist_ = 1|send|tip:test)
+;; FindCmdOpt( optlist_, "send" ) == 1
+;; FindCmdOpt( optlist_, "tip:", var_temp ) == 1; var_temp = "test"
+FindCmdOpt(optlist_, optname_, &_optvalue_ := "NoReturn") {
+    if optlist_ = ""
+        return false
+
+    if optname_ = ""
+        return false
+
+
+    opt_array := StrSplit(optlist_, "|")
+
+
+    if InStr(optname_, ":") {
+        Loop opt_array.Length
+            opt_item := opt_array[A_Index]
+            if InStr(opt_item, optname_)
+            {
+                itemArray := StrSplit(opt_item, ":")
+                _optvalue_ := itemArray[2]
+                return true
+            }
+
+    } else {
+
+        return opt_array.Has(optname_)
+    }
+    return false
+}
+
+
+run_cmd(cmdstr_) {
+
+	;; 先检查命令串是否有效
+    if !IsValidCmd(cmdstr_)
+        return false
+
+    bRet := false
+    bNeedTip := true
+    opt := ""
+    cmdstr := cmdStringSplit(cmdstr_, &opt)
+ 
+    if InStrList(opt, "0", "|") > 0 {
+        CmdStringTip(cmdstr " 已经设置无效！")
+        return false
+    }
+
+    ;; 如果需要复制选中的文件，则选中之
+
+    var_clip := ""
+    if InStrList(opt, "clip", "|") > 0 {
+        var_clip := cliptext("", true)
+    }
+
+	;; 如果要求激活某个窗口WinActivate
+    if RegExMatch(opt, "i)(?<=WinActivate:).*?(?=$|\)|\|)", &var_match) > 0 {
+        if !WinActive(var_match) {
+            WinActivate(var_match)
+            WinWaitActive(var_match, , 5)
+        }
+        if !WinActive(var_match)
+            return false
+    }
+
+	;; 如果需要Sleep
+    if RegExMatch(opt, "i)(?<=sleep:).*?(?=$|\)|\|)", &var_sleep) > 0 {
+        if var_sleep is Integer {
+            ToolTip("Sleep " var_sleep)
+            Sleep var_sleep
+            ToolTip()
+        }
+    }
+
+
+    if InStrList(opt, "send", "|") > 0 {
+        Send(cmdstr)
+        bRet := true
+    } else if InStrList(opt, "sendByClip", "|") > 0 {
+        var_oldclip := A_Clipboard
+        A_Clipboard := cmdstr
+        Send("^v")
+        A_Clipboard := var_oldclip
+        bRet := true
+    } else if InStrList(opt, "gosub", "|") > 0 {
+        if IsLabel(cmdstr) {
+            cmdstr()
+            bRet := true
+        } else {
+            tooltip3("功能模块 " cmdstr " 不存在")
+            bRet := false
+        }
+    } else if InStrList(opt, "menu", "|") > 0 {
+        bNeedTip := false
+        CreateMenuByIni(cmdstr, "A")
+    } else if InStrList(opt, "run", "|") > 0 {
+        if InStr(cmdstr, "$clip$") {
+            if var_clip = ""
+                var_clip := A_Clipboard
+            cmdstr := StrReplace(cmdstr, "$clip$", var_clip)
+        }
+        Run cmdstr
+    } else if InStrList(opt, "func", "|") > 0 {
+        funcName := ""
+        paramArray := ""
+        if StrSplit2Sub(cmdstr, "(", &funcName, &paramArray) {
+            var_pos := InStr(paramArray, ")", , -1)
+            if var_pos > 0
+                paramArray := SubStr(paramArray, 1, var_pos - 1)
+
+            PA := StrSplit(paramArray, ",")
+            loop PA.Length {
+                val := PA[A_Index]
+                if InStr(val, "$input$") {
+                    prompt := "请输入第 " A_Index " 个变量值："
+                    var_input := myinput("请输入变量", prompt, "")
+                    PA[A_Index] := StrReplace(val, "$input$", var_input)
+                } else if InStr(val, "$clip$") {
+                    if var_clip = ""
+                        var_clip := A_Clipboard
+                    PA[A_Index] := StrReplace(val, "$clip$", var_clip)
+                }
+            }
+
+            try {
+		    ;; 根据参数的个数，调用函数，最多能执行11个参数
+                switch PA.Length {
+                    case 0: %funcName%()
+                    case 1: %funcName%(PA[1])
+                    case 2: %funcName%(PA[1], PA[2])
+                    case 3: %funcName%(PA[1], PA[2], PA[3])
+                    case 4: %funcName%(PA[1], PA[2], PA[3], PA[4])
+                    case 5: %funcName%(PA[1], PA[2], PA[3], PA[4], PA[5])
+                    case 6: %funcName%(PA[1], PA[2], PA[3], PA[4], PA[5], PA[6])
+                    case 7: %funcName%(PA[1], PA[2], PA[3], PA[4], PA[5], PA[6], PA[7])
+                    case 8: %funcName%(PA[1], PA[2], PA[3], PA[4], PA[5], PA[6], PA[7], PA[8])
+                    case 9: %funcName%(PA[1], PA[2], PA[3], PA[4], PA[5], PA[6], PA[7], PA[8], PA[9])
+                    case 10: %funcName%(PA[1], PA[2], PA[3], PA[4], PA[5], PA[6], PA[7], PA[8], PA[9], PA[10])
+                    case 11: %funcName%(PA[1], PA[2], PA[3], PA[4], PA[5], PA[6], PA[7], PA[8], PA[9], PA[10], PA[11])
+                    default:
+                        bNeedTip := false
+                        CmdStringTip("函数 " funcName " 执行失败！")
+                }
+            }
+        } else {
+            %funcName%()
+        }
+    } else if RegExMatch(opt, "i)(?<=runby:).*?(?=$|\)|\|)", &var_file) > 0 {
+        if FileExist(var_file) {
+		;; 如果文件名中包含空格，则为var_file添加引号
+            if RegExMatch(var_file, "\S\s+\S") > 0
+                var_file := '"' var_file '"'
+		;; 如果是相对根目录的相对路径，则转化为绝对路径
+            cmdstr := GetRealPath(cmdstr)
+            Run var_file , cmdstr 
+        }
+    } else if RegExMatch(opt, "i)(?<=launchy:).*?(?=$|\)|\|)", &var_keyname) > 0 {
+        var_read := read_ini("launchy.ini", "file", var_keyname, "")
+        if var_read != "" {
+		;; var_file 可能的值为： abc.exe|exe|c:\work
+            for i, field in StrSplit(var_read, "|") {
+                if field != "" && FileExist(field) {
+		;; 如果文件名中包含空格，则为var_file添加引号
+                    if RegExMatch(field, "\S\s+\S") > 0
+                        field := '"' field '"'
+		;; 如果是相对根目录的相对路径，则转化为绝对路径
+                    cmdstr := GetRealPath(cmdstr)
+                    Run field , cmdstr
+                }
+                break
+            }
+        }
+    }
+
+    if bNeedTip && RegExMatch(opt, "i)(?<=tip\:).*?(?=$|\)|\|)", &var_tip) > 0 {
+        if !RegExMatch(opt, "i)(?<=tiptime\:).*?(?=$|\)|\|)", &var_tiptime)
+            var_tiptime := 400
+        CmdStringTip(var_tip, var_tiptime)
+    }
+
+    return bRet
+}
+
+GetCmdTip(cmdstr_) {
+    opt := ""
+    cmdstr := cmdStringSplit(cmdstr_, &opt)
+    if RegExMatch(opt, "i)(?<=tip:).*?(?=$|\)|\|)", &var_tip) > 0
+        return var_tip
+}
+
+IsValidCmd(cmdstr_) {
+    bRet := true
+    opt := ""
+    cmdstr := cmdStringSplit(cmdstr_, &opt)
+
+    if InStrList(opt, "0", "|") > 0
+        return false
+
+    if InStrList(opt, "send", "|") > 0 || InStrList(opt, "sendByClip", "|") > 0 {
+        if cmdstr = ""
+            return false
+    } else if InStrList(opt, "gosub", "|") > 0 {
+        if !IsLabel(cmdstr)
+            return false
+    } else if InStrList(opt, "menu", "|") > 0 {
+        if !FileExist("ShortcutMenu.ini")
+            InitShortcutMenuIniFile()
+
+        iniMenumem := IniFileRead("ShortcutMenu.ini")
+
+        tempArray := SecArrayFromIniMem(iniMenumem, cmdstr)
+        if tempArray
+            return false
+    }
+
+    if RegExMatch(opt, "i)(?<=IfExist:).*?(?=$|\)|\|)", &var_martch) > 0 {
+        if !FileExist(var_martch)
+            return false
+    }
+    if RegExMatch(opt, "i)(?<=IfWinActive:).*?(?=$|\)|\|)", &var_martch) > 0 {
+        if !WinActive(var_martch)
+            return false
+    }
+    if RegExMatch(opt, "i)(?<=IfWinNotActive:).*?(?=$|\)|\|)", &var_martch) > 0 {
+        if WinActive(var_martch)
+            return false
+    }
+    if RegExMatch(opt, "i)(?<=IfWinExist:).*?(?=$|\)|\|)", &var_martch) > 0 {
+        if !WinExist(var_martch)
+            return false
+    }
+    if RegExMatch(opt, "i)(?<=WinActivate:).*?(?=$|\)|\|)", &var_martch) > 0 {
+        if !WinExist(var_martch)		 ;; 如果要求WinActivate某个窗口，则该窗口必须存在
+            return false
+    }
+    if RegExMatch(opt, "i)(?<=IfWinNotExist:).*?(?=$|\)|\|)", &var_martch) > 0 {
+        if WinExist(var_martch)
+            return false
+    }
+    if RegExMatch(opt, "i)(?<=runby:).*?(?=$|\)|\|)", &var_martch) > 0 {
+        if !FileExist(var_martch)
+            return false
+    } else if RegExMatch(opt, "i)(?<=launchy:).*?(?=$|\)|\|)", &var_martch) > 0 {
+        var_read := read_ini("launchy.ini", "file", var_martch, "")
+        if var_read != "" {
+		;; var_file 可能的值为： abc.exe|exe|c:\work
+            for var_file in StrSplit(var_read, "|") {
+                if var_file != "" {
+                    if !FileExist(var_file)
+                        return false
+                    break
+                } else {
+                    return false
+                }
+            }
+        } else {
+            return false
+        }
+    }
+
+    return true
+}

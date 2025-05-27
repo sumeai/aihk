@@ -3,8 +3,8 @@
 ; 定义全局变量
 global isCapsLockDown := false
 global capsLockDownTime := 0
-global doubleClickCapsTimeout := 260 ; 双击的时间阈值（毫秒）
-global longPressCapsThreshold := 600 ; 长按的时间阈值（毫秒）
+global doubleClickCapsTimeout := 100 ; 双击的时间阈值（毫秒）
+global longPressCapsThreshold := 500 ; 长按的时间阈值（毫秒）
 global lastCapsLockPressTime := 0
 global isSingleClickCaps := false
 
@@ -32,7 +32,7 @@ CapsLock::
         ; 先切换到英文输出法，再切换到中文输入法
         en_input()
         isSingleClickCaps := false
-        sleep 100
+        ; sleep 100
         cn_input()
     }
     else
@@ -56,6 +56,12 @@ CheckSingleClickCapslock()
     return
 }
 
++CapsLock::
+{
+    en_input()
+    cn_input()
+    return 
+}
 
 
 ; Caps Lock 释放事件

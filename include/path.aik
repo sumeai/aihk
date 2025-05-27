@@ -1,0 +1,175 @@
+#include common.aik
+#include string.aik
+
+;; 判断给定的字符串是否是一个路径
+; g_root := "" ; 脚本根目录，包含root.cfg文件的那一级
+
+IsPath(var_path) {
+    if !InStr(var_path, "\")
+        return false
+
+    SplitPath(var_path, &OutFileName, &OutDir)
+    if OutDir = ""
+        return false
+
+    return true
+}
+
+;; 得到脚本根目录, 该目录下有root.cfg作为标记
+get_script_root() {
+    global g_root
+    g_root := A_ScriptDir
+    Loop {
+        if !InStr(g_root, "\")
+            break ; 路径不对
+        RootFile := g_root "\root.cfg"
+        if FileExist(RootFile)
+            return g_root
+        SplitPath(g_root, , &g_root) ; 向上一级
+    }
+    return false
+}
+
+get_root() {
+    global g_root
+    if (g_root = "")
+        g_root := get_script_root()
+    return g_root
+}
+
+∑获取根目录() {
+    return get_root()
+}
+
+get_parent_dir(Path) {
+    SplitPath Path, , &OutDir
+    return OutDir
+}
+
+∑得到上一级路径(Path) {
+    return get_parent_dir(Path)
+}
+
+;; 给一个绝对路径， 返回它相对脚本根目录的相对路径， 如果给定的绝对不在脚本根目录范围之内， 返回 False
+∑绝对路径转相对根路径(RealPath_) {
+    RootDir := ∑获取根目录()
+    if InStr(RealPath_, RootDir) {
+        OutputVar := StrReplace(RealPath_, RootDir, ".")
+        return OutputVar
+    }
+    return false
+}
+
+;; 给一个相对var_dir的路径RelaFileName，转换成绝对路径
+∑相对路径转绝对路径(var_dir, RelaFileName) {
+    while (SubStr(RelaFileName, 1, 3) = "..\") {
+        if !InStr(var_dir, "\")
+            return false
+
+        var_dir := get_parent_dir(var_dir)  ; 向上一层
+        RelaFileName := SubStr(RelaFileName, 4)
+    }
+
+    if (SubStr(RelaFileName, 1, 2) = ".\") {
+        RelaFileName := SubStr(RelaFileName, 3)
+    }
+
+    FirstWord := SubStr(RelaFileName, 1, InStr(RelaFileName, "\")-1)
+    if (FirstWord = "\") {
+        RelaFileName := SubStr(RelaFileName, 2)
+    }
+
+    var_return := var_dir "\" RelaFileName
+    return var_return
+}
+
+;; 返回绝对路径
+GetRealPath(_filepath) {
+    _filepath := StrReplace(_filepath, "/", "\")
+    SplitPath _filepath, &OutFileName, &OutDir, &OutExtension, &OutNameNoExt, &OutDrive
+    if (OutDrive = "" && OutDir != "") {
+        ;; _filepath是相对根目录的路径，将其转化为绝对路径之后返回
+        RootDir := ∑获取根目录()
+        ret := ∑相对路径转绝对路径(RootDir, _filepath)
+    } else {
+        ret := _filepath ; _filepath是绝对路径则返回本身
+    }
+    return ret
+}
+
+;; 给一个相对WorkingDir的路径， 转换成绝对路径
+∑相对工作路径转绝对路径(RelaWorkingDir_) {
+    var_dir := A_WorkingDir
+    RelaFileName := RelaWorkingDir_
+    while (SubStr(RelaFileName, 1, 3) = "..\") {
+        if !InStr(var_dir, "\")
+            return false
+
+        var_dir := get_parent_dir(var_dir)  ; 向上一层
+        RelaFileName := SubStr(RelaFileName, 4)
+    }
+
+    if (SubStr(RelaFileName, 1, 2) = ".\") {
+        RelaFileName := SubStr(RelaFileName, 3)
+    }
+
+    FirstWord := SubStr(RelaFileName, 1, InStr(RelaFileName, "\")-1)
+    if (FirstWord = "\") {
+        RelaFileName := SubStr(RelaFileName, 2)
+    }
+    
+    var_return := var_dir "\" RelaFileName
+    return var_return
+}
+
+;; 给一个相对WorkingDir的路径, 返回它相对脚本根目录的相对路径
+∑相对工作路径转相对根路径(RelaWorkingDir_) {
+    RealPath := ∑相对工作路径转绝对路径(RelaWorkingDir_)
+    if RealPath {
+        RelaRoot := ∑绝对路径转相对根路径(RealPath)
+        if RelaRoot {
+            return RelaRoot
+        }
+    }
+    return false
+}
+
+;; 分析路径得到目录、文件名（不带扩展名）、扩展名
+∑分解路径(var_path, & _dir, & _filename, & _ext) {
+    SplitPath(var_path, , &_dir, &_ext, &_filename)
+}
+
+;; 得到路径的扩展名，并将扩展名中的空格和TAB替换成_
+get_path_ext(var_path) {
+    SplitPath var_path, , , &var_ext
+    if var_ext {
+        var_ext := StrReplace(var_ext, A_Space, "_")
+        var_ext := StrReplace(var_ext, A_Tab, "_")
+    }
+    return var_ext
+}
+
+;; 将路径var_path缩短到指定长度var_len，可能会省略中间某些内容
+∑缩短路径(var_path, var_len) {
+    pathlen := StrLen(var_path)
+    if (pathlen <= var_len) {
+        return var_path ;; 路径长度本身没有超过指定长度，无需压缩
+    }
+    if !InStr(var_path, "\") {
+        return var_path ;; 路径中没有\符号，则不管长度，不缩短
+    }
+    SplitPath var_path, &name, &dir, &ext, &name_no_ext, &drive
+
+    ret := name
+    namelen := StrLen(name)
+    drivelen := StrLen(drive)
+
+    if (drivelen > 0 && (namelen >= var_len - 5))
+        ret := drive "\..." name
+    else {
+        len := var_len - namelen - 4
+        ret := SubStr(dir, 1, len)
+        ret := ret "\..." name
+    }
+    return ret
+}

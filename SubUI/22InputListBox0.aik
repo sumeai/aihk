@@ -1,0 +1,132 @@
+;#include ..\..\
+;#include .\inc\string.aik
+
+InputListBox( var_strList, _Prompt="输入命令" )
+{
+;	tooltip7( "Enter InputListBox() " )
+	Global _InputListBox_ComboBox
+	if var_strList =
+		return
+
+
+	bClose := false			;; 是否已经关闭窗口
+	var_return =
+	var_bAutoList := true   	;; 暂时停止自动刷新下拉列表，方便使用ＵＰ／Ｄｏｗｎ方向键选择下拉列表项
+	var_title = 我的Input窗口
+	var_wintitle = %var_title% ahk_class AutoHotkeyGUI
+
+	ifwinexist %var_wintitle%
+		msgbox 窗口已经存在 
+	
+	;;---显示窗口----------------------------------------------------------------
+	Gui +22:OwnDialogs
+	Gui, 22:Add, Button, x56 y60 w80 h25 default  g【我的Input窗口_确定按钮】, 确定(&Y)
+	Gui, 22:Add, Button, x196 y60 w80 h25  g【我的Input窗口_取消按钮】, 取消(&N)
+	Gui, 22:Add, Text, x10 y2 w330 h50 , %_Prompt%
+
+	Gui, 22:Add, ComboBox, x11 y22 w310 h25 R15 v_InputListBox_ComboBox g【我的Input窗口_输入框】, %var_strList%
+	; Generated using SmartGUI Creator 4.0
+	Gui, 22:-SysMenu
+	Gui, 22:Show, h98 w333, %var_title%
+
+	;; 显示下拉框
+	Control ShowDropDown, , ComboBox1, %var_wintitle%	
+	GuiControl 22:focus, _InputListBox_ComboBox
+
+
+	;; 设置热键
+	Hotkey, IfWinActive, %var_wintitle%
+	Hotkey, ~up, 	【我的Input窗口_停止自动刷新】  
+	Hotkey, ~down, 	【我的Input窗口_停止自动刷新】  
+	Hotkey, !F4, 	【我的Input窗口_取消按钮】
+
+;	listvars
+;	pause 
+
+	;; 等待窗口关闭
+	loop 
+	{
+		Sleep 200
+		
+		if bClose
+			break
+
+		IfWinNotExist %var_wintitle%
+			break
+	}
+
+    Return var_return
+
+
+
+	;;---响应用户输入------------------------------------------------------------
+	【我的Input窗口_输入框】:
+		ControlGetText var_temp, Edit1, %var_wintitle%
+		if (var_preMyinput == var_temp)
+		{
+			return
+		}
+		var_preMyinput := var_temp
+		if not var_bAutoList 
+		{
+			var_bAutoList := true
+			return
+		}
+		findList =
+		if var_temp <>
+		{
+			loop parse, var_strList, |
+			{
+				if a_loopfield <>
+				{
+					ifinstring a_loopfield, %var_temp%
+					{
+						StrListAdd( findList, a_loopfield, "|" )
+					}
+				}
+			}
+		}
+		Control HideDropDown, , ComboBox1, 
+		GuiControl,,_InputListBox_ComboBox, |
+		if ( var_temp <> "" && findList = var_temp )
+		{
+			;; 如果当前输入框内的内容只能搜索到一个选项，且与输入框的值相同，则不弹出下拉框
+			Control HideDropDown, , ComboBox1, %var_wintitle%
+		}
+		else if findList <>
+		{	
+			GuiControl,,_InputListBox_ComboBox, %findList%
+			Control ShowDropDown, , ComboBox1, %var_wintitle%
+		;	ControlFocus,  Edit1, %var_wintitle%
+		}
+		else
+		{
+			GuiControl,,_InputListBox_ComboBox, %var_strList%
+		}
+		GuiControl, Text, _InputListBox_ComboBox, %var_temp%
+		send {end}
+		return	
+		
+	;;---按钮响应----------------------------------------------------------------
+	【我的Input窗口_确定按钮】:
+		Gui, 22:submit, nohide
+		var_return = %_InputListBox_ComboBox%
+		Gui 22:Destroy
+		bClose := true
+		return 
+			
+	【我的Input窗口_取消按钮】:
+	22:GuiClose:
+		_InputListBox_ComboBox = 
+		var_return =
+		Gui 22:Destroy
+		bClose := true
+		return 
+
+		
+
+	【我的Input窗口_停止自动刷新】:
+		var_bAutoList := false
+		return
+		
+}

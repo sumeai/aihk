@@ -1,0 +1,94 @@
+; g_RemoveToolTipList := ""  ;; 需要定时Remove的Tooltip序号
+
+settooltipvar(&var_tooltip, var_text := "无提示内容", var_time := 1000) {
+    var_temp := var_tooltip
+    var_tooltip := var_text
+    Sleep var_time
+    var_tooltip := var_temp
+}
+
+;; 短暂提示;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+tipshow(var_temp := "无提示内容", var_time := 800, var_tipnum := 2) {
+    ToolTip var_temp, , , var_tipnum
+    Sleep var_time
+    ToolTip("", , , var_tipnum)
+}
+
+;;---用第X个tooltip显示文本内容，内容为空时即隐藏该tooltip-------------------
+
+tipx(idx, text := "", var_time := 2500, x_ := "", y_ := "") {
+    global g_RemoveToolTipList
+    ToolTip text, x_, y_, idx
+    if text != "" {
+        g_RemoveToolTipList .= (g_RemoveToolTipList != "" ? "|" : "") . idx
+        SetTimer RemoveToolTipX, var_time
+    }
+}
+
+tipword(string := "无提示内容", var_time := 2000) {
+    tooltip3(string, var_time)
+}
+
+talkshow(var_text := "无提示内容", var_title := "", var_time := 5000) {
+    TrayTip var_title, var_text
+    SetTimer RemoveTrayTip, var_time
+}
+
+RemoveTrayTip() {
+    SetTimer RemoveTrayTip, 0
+    TrayTip
+}
+
+tooltip7(string := "无提示内容", var_time := 2500) {
+    if string = ""
+        return
+    ToolTip string, , , 7
+    SetTimer RemoveToolTip7, var_time
+}
+
+RemoveToolTip7() {
+    SetTimer RemoveToolTip7, 0
+    ToolTip("", , , 7)
+}
+
+tooltip5(string := "无提示内容", var_time := 2000) {
+    if string = ""
+        return
+    ToolTip string, , , 5
+    SetTimer RemoveToolTip5, var_time
+}
+
+RemoveToolTip5() {
+    SetTimer RemoveToolTip5, 0
+    ToolTip("", , , 5)
+}
+
+tooltip3(string := "无提示内容", var_time := 2000) {
+    if string = ""
+        return
+    ToolTip string, , , 3
+    SetTimer RemoveToolTip3, var_time
+}
+
+RemoveToolTip3() {
+    SetTimer RemoveToolTip3, 0
+    ToolTip("", , , 3)
+}
+
+GestureTip(str := "", var_time := 800) {
+    tipx(19, str, var_time)
+}
+
+CmdStringTip(str := "", var_time := 1200) {
+    tipx(18, str, var_time)
+}
+
+RemoveToolTipX() {
+    global g_RemoveToolTipList
+    SetTimer RemoveToolTipX, 0
+    for each, idx in StrSplit(g_RemoveToolTipList, "|") {
+        if idx != "" && idx is Integer
+            ToolTip("", , , idx)
+    }
+    g_RemoveToolTipList := ""
+}

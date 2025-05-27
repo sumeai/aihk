@@ -1,0 +1,798 @@
+; common.aik 定义最基本的函数
+; 作者: 陈建平
+
+#Requires AutoHotkey v2.0
+
+
+; g_isInstall_autohotkey := false
+
+∑是否安装了AutoHotkey() {
+	global g_isInstall_autohotkey
+
+	if g_isInstall_autohotkey = ""
+	{
+		var_RootKey := "HKEY_LOCAL_MACHINE"
+		var_SubKey := "SOFTWARE\AutoHotkey"
+		try {
+			var_read := RegRead(var_RootKey, var_SubKey, "InstallDir")
+			g_isInstall_autohotkey := var_read != ""
+		} catch {
+			g_isInstall_autohotkey := false
+		}
+	}
+	return g_isInstall_autohotkey
+}
+
+cliptext(varDefault := "", bWait := true) {
+	ClipboardOld := ClipboardAll()
+	A_Clipboard := varDefault
+	Send("^c")
+
+	if !bWait
+		return
+
+	ClipWait(0, true)
+	Sleep(100)
+	varClip := A_Clipboard
+	A_Clipboard := ClipboardOld
+	return varClip
+}
+
+
+/** @brief	选择光标左边的一个空白字符
+* 当你想激活一个HotString时，必须在上一单词结束后，再输入Hotkey才能生效
+* 通常用空格作为上一单词的结束，而有的时候这个空格是多余的，
+* 本函数的目的就是选中这个多余的空格，方便用户可以立即替换之。
+* 应用示例：
+* 现有热键“;c”用于激活汉字输入法，假设现在我想输入字符串“is安装了AutoHotkey()”
+* 在输入"is"之后需要输入";c"切换中文输入法，如果我直接输"is;c"是不会激活";c"热键的，
+* 因为系统认为“is;c”是一个完整的单词。因此需要输入"is ;c",才能使";c"热键生效。
+* 然而这就多了一个空格。为了清除这个多余的空格，可以在 ";c"内部先调用本函数，
+* 如此一来，在激活“is;c”时将会选中这个多余的空格，然后切换到中文输入法。
+* 此时直接输入汉字将会这个多余的空格覆盖，从而不必为了删除这个空格多按一下退格键。
+*/
+SelectLeftSpaceChar() {
+    ; AutoTrim(false)
+    ClipboardOld := A_Clipboard
+    A_Clipboard := "$error$"
+    Send("{Shift Down}{Left}{Shift Up}")
+    Send("^c")
+    ClipWait()
+
+    if A_Clipboard = "$error$" {
+        A_Clipboard := ClipboardOld
+        return
+    }
+
+    if InStr(A_Clipboard, "`n") {
+        Send("{Down}")
+    } else if !RegExMatch(A_Clipboard, "^\s$") {
+        Send("{Right}")
+    }
+
+    A_Clipboard := ClipboardOld
+    ; AutoTrim(true)
+}
+
+;;借助剪贴板来输出非英文字符 flag= 0无格式粘贴 1转换为大写后粘贴 2小写粘贴 3首字母大写
+Sendbyclip(var_string, flag := 0) {
+    ClipboardOld := ClipboardAll()
+    
+    if flag = 1
+        A_Clipboard := StrUpper(var_string)
+    else if flag = 2
+        A_Clipboard := StrLower(var_string)
+    else if flag = 3
+        A_Clipboard := StrTitle(var_string)
+    else
+        A_Clipboard := var_string
+
+    Sleep(100)
+    Send("^v")
+    Sleep(100)
+    A_Clipboard := ClipboardOld
+}
+
+;;---选中一行----------------------------------------------------------------
+SelectLine()
+{
+	Send("{Home}{Shift Down}{End}{Shift Up}")
+}
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+pleasewait(var_title := "", var_text := "", var_time := 0) {
+    Loop {
+        if (var_time = 0) {
+            var_time := InputBox("你要暂停多久？请输入时间(毫秒)", "设置等待时间", "w300 h120")
+        }
+        if (var_time < 500)
+            return
+        if (var_title = "") {
+            Sleep(var_time)
+        } else {
+            WinWait(var_title, var_text, var_time)
+        }
+        var_time := 0
+    }
+}
+
+;; send 一个变量的值
+cout(var_out)
+{
+    SendInput(var_out)
+}
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;---InputBox相关函数--------------------------------------------------------
+
+YesNoBox(var_title, var_text) {
+    result := MsgBox(var_text, var_title, "YesNo")
+    return result = "Yes"
+}
+
+MyInput(vartitle, varPrompt, varDefault := "", varWidth := 260, varHeight := 120) {
+    Sleep 200
+    var_user := ""
+    if (varWidth <= 0 || varHeight <= 0) {
+        result := InputBox(varPrompt, vartitle, ,varDefault)
+    } else {
+        result := InputBox(varPrompt, vartitle, "w" varWidth " h" varHeight, varDefault)
+    }
+    if result.Result != "OK"
+        return ""
+    return result.Value
+}
+
+
+;; 与MyInput不同之处在于, 会将光标定位在最后位置
+MyInput2(vartitle, varPrompt, varDefault := "", varWidth := 260, varHeight := 120) {
+    SetTimer(输入窗口将光标定位到输入框最后.Bind(vartitle, varPrompt), 100)
+    return MyInput(vartitle, varPrompt, varDefault, varWidth, varHeight)
+}
+
+输入窗口将光标定位到输入框最后(vartitle, varPrompt) {
+    if WinExist(vartitle, varPrompt) {
+        WinActivate
+        Send("{End}")
+        SetTimer(输入窗口将光标定位到输入框最后.Bind(vartitle, varPrompt), 0)
+    }
+}
+
+
+;; 与MyInput不同之处在于, 输入窗口会置顶并自动透明
+MyInputBox(vartitle, varPrompt, varDefault := "", varXPos := 0, varYPos := 0, varWidth := 260, varHeight := 120) {
+    global
+    var_user := ""
+    SetTimer(设置MyInputBox窗口透明度.Bind(vartitle, varPrompt, varXPos, varYPos), 100)
+    if (varWidth <= 0 || varHeight <= 0) {
+        var_user := MyInput(vartitle, varPrompt, varDefault)
+    } else {
+        var_user := MyInput(vartitle, varPrompt, varDefault, varWidth, varHeight)
+    }
+    return var_user
+}
+
+
+
+;;默认更宽的窗口,方便于设置InputBox窗口的宽度和高度
+MyInputBox2(vartitle, varPrompt, varDefault := "", varWidth := 400, varHeight := 160) {
+    return MyInputBox(vartitle, varPrompt, varDefault, 0, 0, varWidth, varHeight)
+}
+
+
+设置MyInputBox窗口透明度(vartitle, varPrompt, varXPos, varYPos) {
+    if WinExist(vartitle, varPrompt) {
+        if !(varXPos = 0 || varYPos = 0)
+            WinMove(, , varXPos, varYPos)
+        WinSetAlwaysOnTop true
+        if WinActive(vartitle, varPrompt)
+            WinSetTransparent(250)
+        else
+            WinSetTransparent(100)
+    } else {
+        SetTimer(设置MyInputBox窗口透明度.Bind(vartitle, varPrompt, varXPos, varYPos), 0)
+    }
+}
+
+
+;; 程序调试用， 用MsgBox呈现Text_的内容, 并显示当前运行的文件、函数以及所在行
+; @ Text_ 			要显示的内容
+; @ DebugGroup_	当全局参数g_group未初始化时, 将从{var.ini}[debug]<DebugGroup_>中读取值,
+; @ g_group 		当g_group=1时, 显示MsgBox, 引入该参数的目的是少读取var.ini文件
+DebugBox(Text_, DebugGroup_, &g_group) {
+    if !g_group {
+        ShowMsgBox := IniRead("var.ini", "Debug", DebugGroup_, "false")
+        g_group := ShowMsgBox ? 1 : -1
+    }
+
+    if g_group = 1 {
+        MsgBox Text_
+    }
+    return
+}
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 按钮消息相关的函数
+;;------ 两个键Key1,key2同时按下时响应 Var_event事件 ----------
+twokeys(key1, key2, var_event) {
+    SendEvent("{Blind}{" key1 " down}")
+    KeyWait(key2, "D L T0.3")
+    SendEvent(var_event)
+    SendEvent("{Blind}{" key1 " up}")
+}
+
+
+; 检查某个键是否已经按下
+is_key_down(KeyName_) {
+    state := GetKeyState(KeyName_)
+    if (state = "D")
+        return true
+    return false
+}
+
+
+
+;; 按住Key_键, 持续Send由SendText_指定的内容,  MilSecond_ 指定循环间隔时间(毫秒)
+loop_send_while_keydown(Key_, SendText_, MilSecond_ := 100) {
+    Loop {
+        SendText(SendText_)
+        Sleep(MilSecond_)
+        if !is_key_down(Key_)
+            return
+    }
+}
+
+
+
+;; 按住Key_键, 持续调用函数 FunctionName_( Param_ ), MilSecond_ 指定循环间隔时间(毫秒)
+loop_func_while_keydown(Key_, FunctionName_, Param_ := "", MilSecond_ := 100) {
+    MsgBox "loop_func_while_keydown(" Key_ ", " FunctionName_ ", " Param_ ", " MilSecond_ ")"
+
+    Loop {
+        %FunctionName_%(Param_)
+        Sleep(MilSecond_)
+        if !is_key_down(Key_)
+            return
+    }
+    return
+}
+
+
+; 在选中的文本前后分别加上字符串FirstString和 LastString
+block_selected_text(FirstString, LastString) {
+    A_Clipboard := ""
+    Sleep 100
+    Send("^x")
+    ClipWait(2)
+    var_temp := FirstString A_Clipboard LastString
+    SendByClip(var_temp)
+
+
+;	示例说明
+;	block_selected_text("`"", "`"") 将选中的文本用引号括起来
+;	block_selected_text("(", ")")    将选中的文本用()括起来
+}
+
+
+
+;;---将RGB色彩从 #abcdef 转换成 (171, 205, 239)------------------------------
+SplitRGB(colorstr, &var_red, &var_green, &var_blue) {
+    if SubStr(colorstr, 1, 2) = "0x" {
+        var_red := Integer("0x" SubStr(colorstr, 3, 2))
+        var_green := Integer("0x" SubStr(colorstr, 5, 2))
+        var_blue := Integer("0x" SubStr(colorstr, 7, 2))
+        return true
+    }
+    return false
+}
+
+
+
+;; windows10 
+switchime_win10(ime := "A") {
+    hwnd := WinActive("A")
+    if (ime = 1) {
+        DllCall("SendMessage", "Ptr", hwnd, "UInt", 0x50, "Ptr", 1, "Ptr", DllCall("LoadKeyboardLayout", "Str", "00000804", "UInt", 1, "Ptr"))
+    } else if (ime = 0) {
+        DllCall("SendMessage", "Ptr", hwnd, "UInt", 0x50, "Ptr", 1, "Ptr", DllCall("LoadKeyboardLayout", "Str", "", "UInt", 1, "Ptr"))
+    } else if (ime = "A") {
+        Send "#{Space}"
+    }
+}
+
+
+; 切换输入法的方法，dwLayout 指定键盘布局， 举例：switchime("E0210804")切换到QQ五笔， switchime("E0200804") 切换到搜狐五笔
+; HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\键盘布局（如：E0200804）\Ime File=SOGOUWB.IME
+SwitchIME_index(dwLayout) {
+    hwnd := WinActive("A")
+    DllCall("SendMessage", "Ptr", hwnd, "UInt", 0x50, "Ptr", 1, "Ptr", DllCall("LoadKeyboardLayout", "Str", dwLayout, "UInt", 1, "Ptr"))
+}
+
+
+
+/** @brief	为Edit控件设置新文本, 并且选中指定文本
+ * @param[in]	NewText  为Edit控件新设置的文本
+ * @param[in]	SelectText  希望被选中的文本
+ * @param[in]	bR  从NewText的右边开始查找SelectText
+ * @param[in]	EditControl  Edit控件的名称
+ * @param[in]	WinTitle  窗口标题
+ * @param[in]	WinText  窗口包含的文本
+ */
+SetEditTextAndSelect(NewText, SelectText, bR, EditControl, WinTitle := "A", WinText := "") {
+    ControlSetText(EditControl, NewText, WinTitle, WinText)
+    ControlFocus(EditControl, WinTitle, WinText)
+    if (SelectText == "") {
+        return
+    }
+    if !InStr(NewText, SelectText) {
+        return
+    }
+
+    var_oldclip := A_Clipboard
+    A_Clipboard := ""
+    startPos := 0
+    lenNew := StrLen(NewText)
+    lenSelect := StrLen(SelectText)
+    count := lenNew - lenSelect
+
+    if bR {
+        Loop count {
+            if !WinExist(WinTitle, WinText)
+                break
+            Send("{End}")
+            if startPos > 0
+                Send("{Left " startPos "}")
+            Loop lenSelect {
+                Send("{Shift down}{Left}{Shift up}")
+                Send("^c")
+                ClipWait 1
+                if (A_Clipboard == SelectText) {
+                    A_Clipboard := var_oldclip
+                    return
+                }
+            }
+            startPos++
+        }
+    } else {
+        Loop count {
+            if !WinExist(WinTitle, WinText)
+                break
+            Send("{Home}")
+            if startPos > 0
+                Send("{Right " startPos "}")
+            Loop lenSelect {
+                Send("{Shift down}{Right}{Shift up}")
+                Send("^c")
+                ClipWait 1
+                if (A_Clipboard == SelectText) {
+                    A_Clipboard := var_oldclip
+                    return
+                }
+            }
+            startPos++
+        }
+    }
+    A_Clipboard := var_oldclip
+}
+
+
+ComboBox_Count(var_ComboBox) {
+    SendMessage(0x0146, 0, 0, var_ComboBox)
+    nRowCount := A_EventInfo
+    return nRowCount
+}
+
+
+;;---为ComboBox选择下一个选项，超过选项总数时循环，成功返回true--------------
+ComboBox_choose_next(var_ComboBox, &var_curRow) {
+    SendMessage(0x0146, 0, 0, var_ComboBox)
+    nRowCount := A_EventInfo
+
+    nNextRow := var_curRow + 1
+    if (nNextRow > nRowCount)
+        nNextRow := 1
+
+    if (nNextRow != var_curRow) {
+        var_curRow := nNextRow
+        ControlChooseIndex(nNextRow, var_ComboBox)
+
+        return true
+    }
+    return false
+}
+
+
+;;---是否连续按了同一个键----------------------------------------------------
+is_same_key(var_time := 250) {
+    if (A_ThisHotkey == A_PriorHotkey && A_TimeSincePriorHotkey < var_time)
+        return true
+    return false
+}
+
+MouseGetRelaPos(&rx, &ry) {
+    CoordMode("Mouse", "Relative")
+    MouseGetPos(&rx, &ry)
+    CoordMode("Mouse", "Screen")
+}
+
+GetTerminatingCharacters()
+{
+	;; 不能作为结束符的字符 -_
+    var_temp := "`n `"+*`%^/\=`,:?!`'()<&|>[]``{}`;　，。；·‘“”’《》【】｛｝、：！"
+    return var_temp
+}
+
+;;---判断一个变量是否非空的数字----------------------------------------------
+is_digit(var) {
+    if (var == "")
+        return false
+    if !IsDigit(var) {
+        return false
+    }
+    return true
+}
+;; 位与运算，返回值为 var1_ & var2_
+bit_and(var1_, var2_) {
+    return var1_ & var2_
+}
+
+;; 位或运算，返回值为 var1_ | var2_
+bit_or(var1_, var2_) {
+    return var1_ | var2_
+}
+
+;; 异或运算
+bit_xor(var1_, var2_) {
+    return var1_ ^ var2_
+}
+
+;; 位非运算，返回值为 !var_
+bit_not(var_) {
+    return ~var_
+}
+
+;; 左移
+bit_left(var1_, var2_) {
+    return var1_ << var2_
+}
+
+;; 右移
+bit_right(var1_, var2_) {
+    return var1_ >> var2_
+}
+
+
+;;---判断一个窗口是否全屏状态------------------------------------------------
+is_full_screen(var_ahkid) {
+    if WinExist("ahk_id " var_ahkid) {
+        Style := WinGetStyle("ahk_id " var_ahkid)
+        if !(Style & 0xC40000) {
+            return true
+        }
+    }
+    return false
+}
+
+;;---得到指定标题的窗口ahkid-------------------------------------------------
+get_ahkid(WinTitle := "") {
+    if (WinTitle == "")
+        WinTitle := "A"
+    OutputVar := WinGetID(WinTitle)
+    return OutputVar
+}
+
+;;---获取某个文档关联程序的完整路径------------------------------------------
+get_open_exe(var_document) {
+    exefile := Buffer(256, 0)
+    DllCall("Shell32\\FindExecutableA", "str", var_document, "str", "", "ptr", exefile)
+    return StrGet(exefile)
+}
+
+;; 得到指定路径的扩展名，如果是文件夹则返回$Dir$, 如果文件不存在，则返回false, 没有扩展名则返回$NoExt$
+get_file_ext(var_file) {
+	;; 如果var_file包含了分号，如： "C:\Program Files\Common Files\Microsoft Shared\Virtualization Handler\CVH.EXE" "Microsoft Excel 2010 (Beta) 2014006208040000"
+	;; 则取第一个分号内的字符串 C:\Program Files\Common Files\Microsoft Shared\Virtualization Handler\CVH.EXE
+    var_quotation := '"'
+    if InStr(var_file, var_quotation) == 1 {
+        var_temp := SubStr(var_file, 2)
+        var_pos := InStr(var_temp, var_quotation)
+        if var_pos > 0 {
+            var_file := SubStr(var_temp, 1, var_pos - 1)
+        }
+    }
+    ;; 从var_file中提取扩展名
+    var_temp := SubStr(var_file, 1, 4)
+    if (var_temp = "www.") || (var_temp = "http")
+        return "$Web$"
+
+    AttributeString := FileExist(var_file)
+    if AttributeString = ""
+        return
+
+    if InStr(AttributeString, "D")
+        return "$Dir$"
+
+    SplitPath(var_file,, , , &OutExtension)
+    if OutExtension = ""
+        OutExtension := "$NoExt$"
+    return OutExtension
+}
+
+is_folder(Path) {
+    Attrib := FileGetAttrib(Path)	;把 Path 指向的文件或文件夹的属性赋值给 Attrib
+    if InStr(Attrib, "D") {		;如果在 Attrib 里有 D ,就表示这个路径代表的是文件夹，否则就是文件
+        return 1
+    } else {
+        return 0
+    }
+}
+
+
+;; 更换本程序图标
+;; bForce 指定如果是编译成了EXE文件，是否要更换图标
+;; Flag_  指定是否要锁定图标，即当Suspend时不将图标更换到默认的S形图标
+change_icon(var_icofile := "", bForce := false, Flag_ := "") {
+    ; 如果脚本是编译的EXE，且未强制换图标，则退出
+    if (A_IsCompiled && !bForce)
+        return
+
+    ; 如果未指定图标文件，尝试用脚本同名路径的 ico 文件
+    if (var_icofile = "") {
+        SplitPath A_ScriptFullPath, , &OutDir, , &OutNameNoExt
+        var_icofile := OutDir "\" OutNameNoExt ".ico"
+    } else {
+        SplitPath var_icofile, , &OutDir, &OutExtension, &OutNameNoExt, &OutDrive
+        if (OutExtension != "ico")
+            return  ; 非 ico 文件，退出
+
+        ; 如果未提供路径，则在脚本路径中寻找
+        if (OutDir = "") {
+            SplitPath A_ScriptFullPath, , &OutDir
+            var_icofile := OutDir "\" OutNameNoExt ".ico"
+        }
+    }
+
+    ; 如果文件存在，则设置托盘图标
+    if FileExist(var_icofile) {
+        TraySetIcon(var_icofile, , Flag_)
+    }
+}
+
+
+; ;; 调用运行一个脚本，本脚本文件a_IsComplied时，被调用的脚本优先调用编译后的EXE文件
+; ;; 运行成功则返回PID， 否则返回0
+run_ahk(Target, Param := "", WorkingDir := "", MaxMinHide := "", bWait := false) {
+    var_file := Chr(34) . Target . Chr(34)  ; 将实际运行的文件名
+
+    ; 先检查目标文件是否为AHK脚本文件
+    SplitPath(Target, &OutFileName, &OutDir, &OutExtension, &OutNameNoExt, &OutDrive)
+    if (OutExtension = "ahk" or OutExtension = "aik") {
+        ; 如果目标文件是AHK脚本文件，且当前脚本文件a_IsComplied，则优先寻找编译好的EXE文件
+        if (A_IsCompiled) {
+            var_temp := OutDir . "\" . OutNameNoExt . ".exe"
+            if (FileExist(var_temp)) {
+                var_file := var_temp
+            } else if (A_AhkPath != "") {
+                var_file := A_AhkPath . " " . var_file
+            } else {
+                return 0  ; 不存在 AutoHotkey.exe，无法执行AHK脚本文件
+            }
+        }
+        ; 如果 当前脚本文件a_IsComplied = false, 则直接使用AutoHotkey文件执行Target
+        else {
+            var_file := A_AhkPath . " " . var_file
+        }
+    }
+
+    ; 为MaxMinHide参数增加 UseErrorLevel 属性
+    if (MaxMinHide = "") {
+        MaxMinHide := "UseErrorLevel"
+    } else if (!InStr(MaxMinHide, "UseErrorLevel")) {
+        MaxMinHide := "UseErrorLevel|" . MaxMinHide
+    }
+
+    if (bWait) {
+        RunWait var_file . " " . Param, WorkingDir, MaxMinHide
+    } else {
+        Run var_file . " " . Param, WorkingDir, MaxMinHide, &OutputVarPID
+    }
+
+    ; if ErrorLevel
+    ;     return 0
+
+    return OutputVarPID
+}
+
+
+;; Send 到鼠标下的控件
+SendToUnderMouse(keys_) {
+    MouseGetPos &OutputVarX, &OutputVarY, &UMWID, &UMC
+    ControlSend(UMC, keys_, "ahk_id " . UMWID)
+}
+
+;; 给定的坐标是否在当前活动窗口内
+IsPosInAWin(x_, y_) {
+    WinGetPos(&X, &Y, &Width, &Height, "A")
+    if (x_ > X && x_ < (X + Width) && y_ > Y && y_ < (Y + Height))
+        return true
+    MsgBox "(" x_ ", " y_ ") [ " x_ ", " y_ ", " Width ", " Height " ]"
+    return false
+}
+
+
+;; 鼠标是否在当前活动窗口内
+IsMouseInAWin() {
+    CoordMode("Mouse", "Screen")
+    MouseGetPos &x, &y
+    return IsPosInAWin(x, y)
+}
+
+;; 得到桌面的高度（不包括任务栏的高度）
+GetDeskHeight() {
+    WinGetPos &X, &Y, , &taskH, "ahk_class Shell_TrayWnd"  ; 获得任务栏的高
+    deskH := A_ScreenHeight - taskH  ; 除去任务栏后的桌面高度
+    return deskH
+}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Function: 屏蔽/开启键盘输入
+;   The following 2 functions were posted by AHK user Andreone and can be found
+;       at http://www.autohotkey.com/forum/topic22761.html
+;
+;   BlockKeyboardInputs(state="On") disables all keyboard key presses,
+;   but Control, Shift, Alt (thus a hotkey based on these keys can be used to unblock the keyboard)
+;
+; Param
+;   state [in]: On or Off
+BlockKeyboardInputs(state := "On") {
+    static keys := "
+    (
+    Space,Enter,Tab,Esc,BackSpace,Del,Ins,Home,End,PgDn,PgUp,Up,Down,Left,Right,CtrlBreak,ScrollLock,PrintScreen,CapsLock,
+    Pause,AppsKey,LWin,LWin,NumLock,Numpad0,Numpad1,Numpad2,Numpad3,Numpad4,Numpad5,Numpad6,Numpad7,Numpad8,Numpad9,NumpadDot,
+    NumpadDiv,NumpadMult,NumpadAdd,NumpadSub,NumpadEnter,NumpadIns,NumpadEnd,NumpadDown,NumpadPgDn,NumpadLeft,NumpadClear,
+    NumpadRight,NumpadHome,NumpadUp,NumpadPgUp,NumpadDel,Media_Next,Media_Play_Pause,Media_Prev,Media_Stop,Volume_Down,Volume_Up,
+    Volume_Mute,Browser_Back,Browser_Favorites,Browser_Home,Browser_Refresh,Browser_Search,Browser_Stop,Launch_App1,Launch_App2,
+    Launch_Mail,Launch_Media,F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13,F14,F15,F16,F17,F18,F19,F20,F21,F22,
+    1,2,3,4,5,6,7,8,9,0,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,
+    2,&,é,"",(,-,è,_,?,à,),=,$,￡,ù,*,~,#,{,[,|,``,\,^,@,],},;,:,!,?,.,/,§,<,>,vkBC
+    )"
+    
+    for key in StrSplit(keys, ",")
+    {
+        Hotkey "*" key, KeyboardDummyLabel, %state% " UseErrorLevel"
+    }    
+    Return
+
+}
+
+    ; hotkeys need a label, so give them one that does nothing
+    KeyboardDummyLabel(ThisHotkey){
+        return
+    }
+
+; ****************************************************************************** 
+; Function: 屏蔽/开启鼠标输入
+;    BlockMouseClicks(state := "On") disables all mouse clicks
+;
+; Param
+;   state [in]: On or Off
+;
+    BlockMouseClicks(state := "On") {
+        static keys := "RButton,LButton,MButton,WheelUp,WheelDown"
+        for key in StrSplit(keys, ",")
+        {
+            Hotkey "*" key, MouseDummyLabel, %state%
+        }
+        Return
+    }
+
+
+    ; hotkeys need a label, so give them one that does nothing
+    MouseDummyLabel()
+    {
+        return
+    }
+
+
+    StrToNeedleRegEx(_str) {
+        strRet := _str
+        if RegExMatch(_str, "[\\.*?+\[{\|()}\]^$]") {
+            strRet := StrReplace(strRet, "\", "\\")
+            strRet := StrReplace(strRet, ".", "\.")
+            strRet := StrReplace(strRet, "*", "\*")
+            strRet := StrReplace(strRet, "?", "\?")
+            strRet := StrReplace(strRet, "+", "\+")
+            strRet := StrReplace(strRet, "[", "\[")
+            strRet := StrReplace(strRet, "]", "\]")
+            strRet := StrReplace(strRet, "{", "\{")
+            strRet := StrReplace(strRet, "}", "\}")
+            strRet := StrReplace(strRet, "|", "\|")
+            strRet := StrReplace(strRet, "(", "\(")
+            strRet := StrReplace(strRet, ")", "\)")
+            strRet := StrReplace(strRet, "^", "\^")
+            strRet := StrReplace(strRet, "$", "\$")
+        }
+        return strRet
+    }
+    
+    EncodeToString(text_) {
+        str := text_
+        str := StrReplace(str, "`r", "")
+        str := StrReplace(str, "|", "&#124`;")
+        str := StrReplace(str, "`n", "|")
+        return str
+    }
+    
+    DecodeToText(str_) {
+        var_text := str_
+        var_text := StrReplace(var_text, "|", "`n")
+        var_text := RegExReplace(var_text, "\@#124;", "|")
+        return var_text
+    }
+    
+    RunOrActivate(Target, WinTitle := "") {
+        SplitPath(Target, &TargetNameOnly)
+        PID := 0
+        if ProcessExist(TargetNameOnly)
+            PID := ProcessExist(TargetNameOnly)
+        else
+            Run(Target,, , &PID)
+    
+        if WinTitle != ""
+        {
+            SetTitleMatchMode(2)
+            if WinWait(WinTitle, , 3)
+                WinActivate(WinTitle)
+        }
+        else
+        {
+            if WinWait("ahk_pid " PID, , 3)
+                WinActivate("ahk_pid " PID)
+        }
+    }
+    
+    IsControlVisible(Control_, WinTitle_, WinText_ := "") {
+        return ControlGetVisible(Control_, WinTitle_, WinText_)
+    }
+    
+    IsFormVisible(hwnd_) {
+        return ControlGetVisible("", "ahk_id " hwnd_)
+    }
+    
+    RunOrActivateProgram(Program, WorkingDir := "", WindowSize := "") {
+        SplitPath(Program, &ExeFile)
+        PID := ProcessExist(ExeFile)
+        if PID = 0 {
+            Run(Program, WorkingDir, WindowSize)
+        } else {
+            WinActivate("ahk_pid " PID)
+        }
+    }
+
+;; 从参数列表中查找指定参数值
+;; 参数文本如下：
+;; title:我的小字典
+;; section:分节
+    GetValueFromParams(paramtext_, key_, seperator_ := ":", lineBreak_ := "`n") {
+        if paramtext_ = "" || key_ = ""
+            return
+    
+        if lineBreak_ = "`n" {
+            paramtext_ := StrReplace(paramtext_, "`r`n", "`n")
+            paramtext_ := StrReplace(paramtext_, "`r", "`n")
+            paramtext_ := StrReplace(paramtext_, "`n`n", "`n")
+        }
+    
+        for var_temp in StrSplit(paramtext_, lineBreak_) {
+            if var_temp = ""
+                continue
+            var_needle := "^\s*" . key_ . "\s*" . seperator_
+            if RegExMatch(var_temp, var_needle) {
+                return RegExReplace(var_temp, var_needle)
+            }
+        }
+    }
+    
