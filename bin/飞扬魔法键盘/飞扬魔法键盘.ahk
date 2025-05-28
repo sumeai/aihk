@@ -19,6 +19,7 @@
 
  g_version := "V2.00"
  g_bRightMenu := ""
+ g_root := ""
 
  g_ImagesDir := A_ScriptDir "\images"
  #SingleInstance force
@@ -438,7 +439,7 @@
      {
         ;  change_icon("设置.ico", true, 1)
          _key["btn_setting"].Text := "返回"
-         _key["btn_sidepic"].Value := g_keyBoard_setpic
+         _key_sidepic.Value := g_keyBoard_setpic
          _key["title"].Opt("-Right")
          _key["title"].Text := "【 " g_keyBoard_name " 】 处于编辑状态(Alt+RShift返回)，热键被暂停。"
          WinSetTransColor TransColor " 255", "ahk_id " k_ID
@@ -454,7 +455,7 @@
          var_color := ∑获取当前键盘颜色()
         ;  change_icon(var_color ".ico", true)
          _key["btn_setting"].Text := "设置"
-         _key["btn_sidepic"].Value := g_keyBoard_sidepic
+         _key_sidepic.Value := g_keyBoard_sidepic
          _key["title"].Opt("+Right")
          _key["title"].Text := "【 " g_keyBoard_name " 】"
          WinSetTransColor TransColor " 150", "ahk_id " k_ID
@@ -813,7 +814,7 @@
          k_ASCII++
      }
      var_ChangeHK := IniRead("AutoHotString.ini", "全局热键", "【选择飞扬魔法键盘】", "1)AppsKey & Space")
-     cmdStringSplit(var_ChangeHK, &var_opt)
+     var_ChangeHK := cmdStringSplit(var_ChangeHK, &var_opt)
      var_ChangeHK := var_ChangeHK = "" ? "AppsKey & Space" : var_ChangeHK
      if bUsers
      {
@@ -821,13 +822,16 @@
          Hotkey "*'", 按键响应, flag
          Hotkey "~*, up", 响应按键释放, flag
          Hotkey "~*' up", 响应按键释放, flag
+
          Hotkey var_ChangeHK, 切换到默认键盘, "On"
+         Hotkey ">^>!Space", 切换到默认键盘, "On"
      }
      else
      {
          Hotkey "~*,", 模拟点击按钮, flag
          Hotkey "~*'", 模拟点击按钮, flag
          Hotkey var_ChangeHK, 切换到最近键盘, "On"
+         Hotkey ">^>!Space", 切换到最近键盘, "On"
      }
      for key in ["Space", "Enter", "Tab"]
          Hotkey "~*" key, 模拟点击按钮, flag
@@ -996,9 +1000,9 @@ ChangePicture(ctrl, newImagePath) {
     ; _key_sidepic.Move(9999, 9999)
     _key_sidepic.Visible := false
 
-    ;; _key["btn_sidepic"].Hide()
-    ; DllCall("ShowWindow", "Ptr", _key["btn_sidepic"].Hwnd, "Int", 0) ; 0 = SW_HIDE
-    ; ChangePicture(_key["btn_sidepic"], g_keyBoard_setpic)
+    ;; _key_sidepic.Hide()
+    ; DllCall("ShowWindow", "Ptr", _key_sidepic.Hwnd, "Int", 0) ; 0 = SW_HIDE
+    ; ChangePicture(_key_sidepic, g_keyBoard_setpic)
 
     _GroupBox.Visible := false
  }

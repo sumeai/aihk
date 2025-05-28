@@ -231,7 +231,6 @@ var_temp := k_WindowWidth - 32
 
 _GroupBox := myGui.Add("GroupBox", "x10 y0 w" var_temp " h" g_GroupHeight " v_GroupBox")
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 遍历按钮，批量处理
 
@@ -267,6 +266,7 @@ for index, value in _keyClickArray {
      }
 }
 
+_GroupBox.Visible := false
 
 
 
