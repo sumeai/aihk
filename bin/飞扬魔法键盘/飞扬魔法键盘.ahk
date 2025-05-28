@@ -825,6 +825,9 @@
      }
      else
      {
+        msgbox "var_ChangeHK = " var_ChangeHK
+
+
          Hotkey "~*,", 模拟点击按钮, flag
          Hotkey "~*'", 模拟点击按钮, flag
          Hotkey var_ChangeHK, 切换到最近键盘, "On"
