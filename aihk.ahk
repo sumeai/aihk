@@ -26,7 +26,7 @@ if DirExist("./user") {
 
 
 
- scriptContent .=  "#Hotif"
+scriptContent .=  "#Hotif"
 
 fileappend(scriptContent, "aihk_run.ahk")
 
@@ -35,7 +35,7 @@ loop 5
 {
     sleep 500
     if FileExist("aihk_run.ahk") {
-        run "aihk_run.ahk"
+        Run "*RunAs aihk_run.ahk", , "Hide"
         exitapp
     }
 }

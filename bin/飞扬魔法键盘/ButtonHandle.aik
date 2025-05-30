@@ -173,3 +173,96 @@ FocusButtonHandle(ctrl, info){
     TipCmdString(cmdstr)
 
  } 
+
+
+
+ 新增键盘(*) {
+     global g_inifile, g_iniContent
+     var_keyboard := myinput("新增键盘", "请输入要新建的键盘名称：")
+     if var_keyboard != ""
+     {
+         if RegExMatch(var_keyboard, "[\[\]]")
+         {
+             MsgBox "键盘名称中不能包含 “[”和 “]”！"
+             return
+         }
+         var_colorList := "橙色|丁香紫|红色|黄色|蓝色|绿色|玫瑰红|青色|设置|天蓝|银色|紫色"
+         var_keycolor := InputListBox(var_colorList, "请选择键盘颜色")
+         if var_keycolor != ""
+         {
+             write_ini(g_inifile, var_keyboard, "Color", var_keycolor)
+             g_iniContent := IniFileRead(g_inifile)
+             ∑切换键盘(var_keyboard)
+         }
+     }
+ } 
+
+ 
+ ∑修改按键按钮的标题(keyBoard_, keyChar_, caption_ := "") {
+     var_caption := ∑获得按键按钮的标题(keyBoard_, keyChar_, &keyName)
+     if caption_ = ""
+         caption_ := var_caption
+
+    if myGui.HasProp("_key_" . keyName)
+        myGui["_key_" . keyName].Text := caption_
+ }
+ 
+
+移动窗口(*) {
+     global g_bMoveWindow, g_mouse_x0, g_mouse_y0, g_win_x0, g_win_y0, k_ID, _key
+     g_bMoveWindow := !g_bMoveWindow
+     if g_bMoveWindow
+     {
+         CoordMode "Mouse", "Screen"
+         MouseGetPos &g_mouse_x0, &g_mouse_y0
+
+         WinGetPos &g_win_x0, &g_win_y0, &OutWidth, &OutHeight, "ahk_id " k_ID
+
+         SetTimer 定时器飞扬魔法键盘窗口跟随鼠标移动, 100
+         var_tip := "◇移动鼠标调整键盘窗口位置`n◇按下鼠标左键停止移动窗口`n◇空格键恢复窗口到默认位置"
+         TrayTip "移动飞扬魔法键盘窗口", var_tip
+         _key["space"].Text := "窗口跟随鼠标移动"
+         Hotkey "LButton", 停止移动窗口, "On"
+         Hotkey "Space", 移动窗口到默认位置, "On"
+     }
+     else
+         停止移动窗口()
+ }
+
+ 
+停止移动窗口(*) {
+     global g_bMoveWindow
+     TrayTip()
+     g_bMoveWindow := false
+     SetTimer 定时器飞扬魔法键盘窗口跟随鼠标移动, 0
+     ∑修改按键按钮的标题(∑获取当前键盘名称(), "Space")
+     Hotkey "LButton", 停止移动窗口, "Off"
+     Hotkey "Space", 移动窗口到默认位置,  "Off"
+ }
+ 
+移动窗口到默认位置(*) {
+     global k_ID, k_WorkAreaRight, k_WorkAreaLeft, k_WindowWidth, k_WorkAreaBottom, k_WindowHeight
+     停止移动窗口()
+     k_WindowX := k_WorkAreaRight - k_WorkAreaLeft - k_WindowWidth
+     k_WindowX := k_WindowX / 2 + k_WorkAreaLeft
+     k_WindowY := k_WorkAreaBottom - k_WindowHeight
+     WinMove k_WindowX, k_WindowY, , , "ahk_id " k_ID
+ }
+ 
+定时器飞扬魔法键盘窗口跟随鼠标移动(*) {
+     global g_bMoveWindow, k_ID, g_mouse_x0, g_mouse_y0, g_win_x0, g_win_y0
+     if !g_bMoveWindow || GetKeyState("LButton", "P")
+     {
+         停止移动窗口()
+         return
+     }
+     if GetKeyState("Ctrl", "P")
+     {
+         停止移动窗口()
+         移动窗口到默认位置()
+         return
+     }
+     CoordMode "Mouse", "Screen"
+     MouseGetPos &g_mouse_x, &g_mouse_y
+     WinMove g_win_x0 + g_mouse_x - g_mouse_x0, g_win_y0 + g_mouse_y - g_mouse_y0, , , "ahk_id " k_ID
+ }

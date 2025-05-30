@@ -24,7 +24,7 @@ AddHotkeyDesc(hotkeyStr, description := "") {
 }
 
 ; 显示当前已注册的热键和说明
-ShowHotkeyList() {
+ShowHotkeyList(title_) {
     global g_HotkeyList
 
     tempini_file := A_ScriptDir "/temp.ini"
@@ -38,7 +38,10 @@ ShowHotkeyList() {
     columsStr := JSON.Dump(ListViewColums)
     IniWrite columsStr, tempini_file, "HotkeyList", "ColumsArray"
 
-
-    run get_root() "/SubUI/24ListViewBox.ahk "  tempini_file
+    cmdline := get_root() "/SubUI/24ListViewBox.ahk  "  tempini_file
+    if (title_ != ""){
+        cmdline .= " " title_
+    }
+    run  cmdline
 }
 
