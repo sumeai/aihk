@@ -1,0 +1,175 @@
+
+
+Shift按钮响应(*) {
+     return
+ }
+
+
+
+; 拖动开始函数
+StartDrag(*) {
+    global myGui, dx, dy
+    CoordMode "Mouse", "Screen"
+
+    ; 获取鼠标初始位置
+    MouseGetPos(&startX, &startY)
+
+    ; 获取窗口初始位置
+    WinGetPos(&winX, &winY,,, myGui)
+
+    dx := startX - winX
+    dy := startY - winY
+
+    ; msgbox (Format("x0:{}, y0:{}, x1:{}, y1:{}, x2:{}, y2:{}", startX, startY, startX1, startY1, startX2, startY2) )
+    
+    ; 监听鼠标左键按住期间的移动
+    SetTimer(DragWindow, 10)
+    KeyWait("LButton") ; 等待左键释放
+    SetTimer(DragWindow, 0) ; 停止定时器
+}
+
+; 拖动窗口函数
+DragWindow() {
+    global myGui, dx, dy
+    CoordMode "Mouse", "Screen"
+    MouseGetPos(&currentX, &currentY)
+    ; WinGetPos(&winX, &winY,,, myGui)
+    
+    ; 计算新位置
+    newX := (currentX - dx)
+    newY := (currentY - dy)
+    
+    ; 更新窗口位置
+    WinMove(newX, newY,,, myGui)
+    
+    ; 更新起始鼠标位置
+    startX := currentX
+    startY := currentY
+}
+
+
+弹出右键菜单(*) {
+     global g_bRightMenu, g_inicontent
+     menuMap := GetMenuMap()
+     if menuMap.Has("RightMenu")
+     {
+        RightMenu := menuMap["RightMenu"]
+        RightMenu.Show()
+        return
+     }
+        
+     RightMenu := Menu()
+     RightMenu.Add("新增键盘 &A", 新增键盘)
+     RightMenu.Add("编辑键盘 &E", 用飞扬小字典编辑键盘)
+     RightMenu.Add("隐藏键盘 &H", 显示或隐藏屏幕键盘)
+     RightMenu.Add("默认位置 &D", 移动窗口到默认位置)
+     RightMenu.Add("")
+     RightMenu.Add("&0 默认键盘", 选择键盘)
+     var_keyboard := ∑获取当前键盘名称()
+     if var_keyboard = "默认键盘"
+         RightMenu.Check("&0 默认键盘")
+     var_temp := AllSecFromIniMem(g_inicontent)
+     Loop Parse var_temp, "|"
+     {
+         if A_LoopField = "" || A_LoopField = "默认键盘"
+             continue
+         var_line := A_LoopField
+         var_menuitem := "&" A_Index " " var_line
+         RightMenu.Add(var_menuitem, 选择键盘)
+         if var_keyboard = var_line
+             RightMenu.Check(var_menuitem)
+     }
+     menuMap["RightMenu"] := RightMenu
+     RightMenu.Show()
+ }
+ 
+
+  
+ 勾选SettingCheckBox(*) {
+     global _key, g_keyBoard_name
+     myGui.Submit(false)
+     var_keyboard := ∑获取当前键盘名称()
+     if var_keyboard = "默认键盘"
+     {
+         MsgBox "默认键盘不能编辑！"
+         return
+     }
+     bCheck := !_key["setting"].value
+     _key["setting"].Value := bCheck
+     点击SettingCheckBox()
+     if GetKeyState("Shift", "P")
+         Send "{Shift up}"
+ }
+
+显示或隐藏屏幕键盘(*) {
+     global g_IsVisible, k_MenuItemHide, k_MenuItemShow
+     if g_IsVisible = "y"
+     {
+         myGui.Hide()
+         A_TrayMenu.Rename(k_MenuItemHide, k_MenuItemShow)
+         g_IsVisible := "n"
+     }
+     else
+     {
+         myGui.Show()
+         A_TrayMenu.Rename(k_MenuItemShow, k_MenuItemHide)
+         g_IsVisible := "y"
+     }
+ }
+ 
+
+ 
+点击SettingCheckBox(*) {
+     global _key, g_keyBoard_name, k_ID, TransColor, g_keyBoard_setpic, g_keyBoard_sidepic,  _key, _GroupBox, g_keyBoard_settingicon, g_keyBoard_icon
+     myGui.Submit(false)
+     if _key["setting"].value
+     {
+        ;  change_icon("设置.ico", true, 1)
+         _key["btn_setting"].Text := "返回"
+         _key_sidepic.Value := g_keyBoard_setpic
+         _key["title"].Opt("-Right")
+         _key["title"].Text := "【 " g_keyBoard_name " 】 处于编辑状态"
+         WinSetTransColor TransColor " 255", "ahk_id " k_ID
+         Suspend true
+         _GroupBox.Text := ""
+         Sleep 10
+         _GroupBox.Text := ""
+        TraySetIcon(g_keyBoard_settingicon, , false)
+     }
+     else
+     {
+        TraySetIcon(g_keyBoard_icon)
+         var_color := ∑获取当前键盘颜色()
+        ;  change_icon(var_color ".ico", true)
+         _key["btn_setting"].Text := "设置"
+         _key_sidepic.Value := g_keyBoard_sidepic
+         _key["title"].Opt("+Right")
+         _key["title"].Text := "【 " g_keyBoard_name " 】"
+         WinSetTransColor TransColor " 150", "ahk_id " k_ID
+         Suspend false
+         _GroupBox.Text := ""
+         Sleep 10
+         _GroupBox.Text := ""
+     }
+ }
+
+
+;; 响应按钮点击
+ClickButtonHandle(ctrl, info) {
+     myGui.Submit(false)
+     
+     ∑鼠标单击按键(ctrl)
+ }
+
+
+
+;; 响应按钮获得焦点
+FocusButtonHandle(ctrl, info){
+
+    value := KeynameToValname(ctrl.Text)
+
+    cmdstr := FindFromIniMem(g_iniContent, g_keyBoard_name, value, "")
+
+    TipCmdString(cmdstr)
+
+ } 

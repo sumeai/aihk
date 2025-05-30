@@ -1,0 +1,166 @@
+
+AddHotkeyDesc("AppsKey", "显示或隐藏飞扬键盘")
+Hotkey "AppsKey", AppsKeyHandle, "On"
+
+AddHotkeyDesc(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
+Hotkey ">^Alt", AppsKeyHandle, "On"
+
+∑设置热键()
+
+;; 以下快捷键在suspend状态下依然生效
+#SuspendExempt true
+
+;; 使用 AppsKey & RShift 切换编辑状态
+AddHotkeyDesc(">^!RShift", "右Ctrl+Alt+Rshift ==> 勾选SettingCheckBox")
+>^!RShift:: 勾选SettingCheckBox()
+AddHotkeyDesc("AppsKey & Rshift", "勾选SettingCheckBox")
+AppsKey & RShift:: 勾选SettingCheckBox()
+
+
+;; AppsKey & esc 退出 飞扬魔法键盘
+AddHotkeyDesc(">^!esc", "右Ctrl+Alt+ESC ==> 退出APP")
+>^!esc:: 退出()
+AddHotkeyDesc("AppsKey & esc", "退出APP")
+AppsKey & esc:: 退出()
+
+;; AppsKey & Space 切换到最近键盘
+AddHotkeyDesc(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
+>^!Space:: 切换到最近键盘()
+AddHotkeyDesc("AppsKey & Space", "切换到最近键盘")
+AppsKey & Space:: 切换到最近键盘()
+
+;; 激活当前键盘
+AddHotkeyDesc("AppsKey & CapsLock", "激活当前键盘")
+AppsKey & CapsLock:: WinActivate("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
+
+;; 查看所有的快捷键
+AddHotkeyDesc(">!^/", "右Alt+Ctrl+/ ==> 查看所有的快捷键")
+>!^/:: ShowHotkeyList()
+AddHotkeyDesc("AppsKey & /", "查看所有的快捷键")
+AppsKey & /:: ShowHotkeyList()
+
+
+
+#HotIf WinActive("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
+AddHotkeyDesc("esc", "退出APP")
+esc:: 退出()
+#HotIf 
+
+#SuspendExempt false
+
+
+ ~*Backspace::{
+     global g_bAutoPressBtn, k_ID
+     if WinActive("新增键盘")
+         return
+     if g_bAutoPressBtn
+     {
+         ControlClick "Bk", "ahk_id " k_ID, "", "LEFT", 1, "D"
+         KeyWait "Backspace"
+         ControlClick "Bk", "ahk_id " k_ID, "", "LEFT", 1, "U"
+     }
+ }
+ 
+
+ ~*LShift::{
+     LShift按键响应()
+ }
+ 
+ 
+ ~*RShift::{
+     global _key, k_ID, g_keyBoard_name, g_bShiftDown
+     if WinActive("新增键盘")
+         return
+     myGui.Submit(false)
+     if _key["setting"]
+         return
+     if g_keyBoard_name = "默认键盘"
+     {
+         LShift按键响应()
+         return
+     }
+     g_bShiftDown := !g_bShiftDown
+     刷新界面按钮显示(g_keyBoard_name)
+     if g_bShiftDown
+     {
+         ControlClick "Shift", "ahk_id " k_ID, "", "LEFT", 1, "D"
+         _key["shift"].Text := "SHIFT"
+     }
+     else
+     {
+         ControlClick "Shift", "ahk_id " k_ID, "", "LEFT", 1, "U"
+         _key["shift"].Text := "Shift"
+     }
+ }
+ 
+
+
+∑设置热键(bActive := true) {
+    keyBoard_name := ∑获取当前键盘名称()
+    bUsers := keyBoard_name != "默认键盘"
+
+    flag := bActive ? "On" : "Off"
+
+    ;; 将普通按钮，捕捉按键消息，并且模拟点击
+    k_ASCII := 45
+    while k_ASCII <= 93
+    {
+        k_char := Chr(k_ASCII)
+        k_char := StrUpper(k_char)
+        if k_char ~= "^[^<^>^^^~^?^`]$"
+        {
+            if bUsers
+            {
+                RegisterHotkey("*" k_char, 按键响应, "响应【" k_char "】按键", flag)
+                Hotkey "~*" k_char " up", 响应按键释放, flag
+            }
+            else
+                Hotkey "~*" k_char, 模拟点击按钮, flag
+        }
+        k_ASCII++
+    }
+
+    ;; 对特殊按钮做响应
+    if bUsers
+    {
+        RegisterHotkey("*,", 按键响应, "响应【,】按键", flag)
+        RegisterHotkey("*'", 按键响应, "响应【'】按键", flag)
+        Hotkey "~*, up", 响应按键释放, flag
+        Hotkey "~*' up", 响应按键释放, flag
+    }
+    else
+    {
+        Hotkey "~*,", 模拟点击按钮, flag
+        Hotkey "~*'", 模拟点击按钮, flag
+    }
+
+    ;; 对于控制键，仅模拟点击按钮
+    for key in ["Space", "Enter", "Tab", "Ctrl", "Alt", "LShift", "LWin"] {
+        Hotkey "~*" key, 模拟点击按钮, flag
+    }
+}
+
+ 
+LShift按键响应() {
+     global _key, k_ID, g_bShiftDown
+     if WinActive("新增键盘")
+         return
+     myGui.Submit(false)
+     if !_key["setting"].value
+     {
+         g_ThisHotkey := SubStr(A_ThisHotkey, 4)
+         ControlClick g_ThisHotkey, "ahk_id " k_ID, "", "LEFT", 1, "D"
+         KeyWait g_ThisHotkey
+         ControlClick g_ThisHotkey, "ahk_id " k_ID, "", "LEFT", 1, "U"
+         if g_bShiftDown
+         {
+             ControlClick "Shift", "ahk_id " k_ID, "", "LEFT", 1, "D"
+             _key["shift"].Text := "SHIFT"
+         }
+         else
+         {
+             ControlClick "Shift", "ahk_id " k_ID, "", "LEFT", 1, "U"
+             _key["shift"].Text := "Shift"
+         }
+     }
+ }

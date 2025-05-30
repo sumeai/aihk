@@ -1,26 +1,66 @@
-;; 确保以管理员的身份启动程序
+;; 纭繚浠ョ鐞嗗憳鐨勮韩浠藉惎鍔ㄧ▼搴?
+change_icon("aihk.png")
 
-/*
 if not A_IsAdmin
 {
-    Run("*RunAs " A_ScriptFullPath)
+    Run "*RunAs " A_ScriptFullPath, , "Hide"
     ExitApp()
 }
-*/
+
 
 #include ./src/alt_vim.ahk
 #include ./src/switch_keyboard.ahk
 #include ./src/capslock.ahk
 #include ./src/360se.ahk
 
+;; 浠ヤ笅蹇嵎閿湪suspend鐘舵�佷笅渚濈劧鐢熸晥
+#SuspendExempt true
+
+;; 閫�鍑?
+Pause & Esc::
+{
+    ExitApp
+}
+
+;; 鏄剧ず褰撳墠瀹氫箟鐨凥otkey鍜孒otString
+Pause & /::
+{
+    ListHotkeys()
+}
+
+;; 鎸傝捣
++Pause::
+{
+    if (A_IsSuspended) {
+        Suspend false
+    } else {
+        Suspend true
+    }
+}
+
+#Hotif NOT WinExist("椋炴壃榄旀硶閿洏 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
+
+pause & ScrollLock::
+appskey::
+{
+    filepath := A_scriptDir "\bin\椋炴壃榄旀硶閿洏\椋炴壃榄旀硶閿洏.ahk"
+    ; var_temp := change_path_ext(filepath, "exe") 
+    ; msgbox "path::" var_temp
+    run filepath
+}
+#Hotif
+
+#SuspendExempt false
+
+
 
 !Pause:: reload
 #Pause:: 
 {
-    IB := InputBox("临时运行以下AHK脚本", "运行AHK脚本", "w600 h120", A_Clipboard)
+    IB := InputBox("涓存椂杩愯浠ヤ笅AHK鑴氭湰", "杩愯AHK鑴氭湰", "w600 h120", A_Clipboard)
     if IB.Result = "Cancel"
     {
-        ToolTip "取消运行"
+        ToolTip "鍙栨秷杩愯"
         SetTimer () => ToolTip(), -1000 
     }
     else
@@ -37,11 +77,13 @@ if not A_IsAdmin
 }
 
 ;:*:ahkhelp2;::run 'https://www.autohotkey.com/docs/v2/index.htm'
+::;ahkhelp::
 :*:ahkhelp;::
 {
     run StrReplace(a_ahkpath, "64.exe", ".chm")
 }
 
+::;ahkspy::
 :*:ahkspy;::
 {
     SplitPath a_ahkpath, &name, &dir, &ext, &name_no_ext, &drive 
@@ -59,9 +101,13 @@ if not A_IsAdmin
 }
 
 
+
+
 #include ./src/win/gvim.ahk
 #include ./src/win/feishu.ahk
 #include ./src/win/vscode.ahk
+#include ./include/path.aik
+
 
 #Hotif Winactive("Log In to e.coding.net ahk_class SunAwtDialog")
 

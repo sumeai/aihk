@@ -1,17 +1,58 @@
-﻿;; 确保以管理员的身份启动程序
+;; 确保以管理员的身份启动程序
+change_icon("aihk.png")
 
-/*
 if not A_IsAdmin
 {
-    Run("*RunAs " A_ScriptFullPath)
+    Run "*RunAs " A_ScriptFullPath, , "Hide"
     ExitApp()
 }
-*/
+
+g_HotkeyList := []
 
 #include ./src/alt_vim.ahk
 #include ./src/switch_keyboard.ahk
 #include ./src/capslock.ahk
 #include ./src/360se.ahk
+
+;; 以下快捷键在suspend状态下依然生效
+#SuspendExempt true
+
+;; 退出
+Pause & Esc::
+{
+    ExitApp
+}
+
+;; 显示当前定义的Hotkey和HotString
+Pause & /::
+{
+    ShowHotkeyList()
+}
+
+;; 挂起
++Pause::
+{
+    if (A_IsSuspended) {
+        Suspend false
+    } else {
+        Suspend true
+    }
+}
+
+#Hotif NOT WinExist("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
+
+pause & ScrollLock::
+appskey::
+{
+    filepath := A_scriptDir "\bin\飞扬魔法键盘\飞扬魔法键盘.ahk"
+    ; var_temp := change_path_ext(filepath, "exe") 
+    ; msgbox "path::" var_temp
+    run filepath
+}
+#Hotif
+
+#SuspendExempt false
+
 
 
 !Pause:: reload
@@ -37,11 +78,13 @@ if not A_IsAdmin
 }
 
 ;:*:ahkhelp2;::run 'https://www.autohotkey.com/docs/v2/index.htm'
+::;ahkhelp::
 :*:ahkhelp;::
 {
     run StrReplace(a_ahkpath, "64.exe", ".chm")
 }
 
+::;ahkspy::
 :*:ahkspy;::
 {
     SplitPath a_ahkpath, &name, &dir, &ext, &name_no_ext, &drive 
@@ -59,7 +102,11 @@ if not A_IsAdmin
 }
 
 
+
+
 #include ./src/win/gvim.ahk
 #include ./src/win/feishu.ahk
 #include ./src/win/vscode.ahk
+#include ./include/path.aik
+#Include  "./include/hotkey_manage.aik"
 

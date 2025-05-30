@@ -22,9 +22,11 @@ get_script_root() {
     Loop {
         if !InStr(g_root, "\")
             break ; 路径不对
-        RootFile := g_root "\root.cfg"
-        if FileExist(RootFile)
-            return g_root
+        if FileExist(g_root "\aihk.ahk")
+            if FileExist(g_root "\bin")
+                if FileExist(g_root "\SubUI")
+                    if FileExist(g_root "\lib")
+                        return g_root
         SplitPath(g_root, , &g_root) ; 向上一级
     }
     return false
@@ -138,6 +140,17 @@ GetRealPath(_filepath) {
 ∑分解路径(var_path, & _dir, & _filename, & _ext) {
     SplitPath(var_path, , &_dir, &_ext, &_filename)
 }
+
+
+;; 分析路径得到目录、文件名（不带扩展名）、扩展名
+change_path_ext(var_path, _newExt) {
+    SplitPath(var_path, , &_dir, &_ext, &_filename)
+    if (_ext != "") {
+        return _dir "\" _filename "." _newExt
+    }
+    return var_path
+}
+
 
 ;; 得到路径的扩展名，并将扩展名中的空格和TAB替换成_
 get_path_ext(var_path) {

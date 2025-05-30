@@ -1,0 +1,44 @@
+; common.aik 定义最基本的函数
+; 作者: 陈建平
+
+#Requires AutoHotkey v2.0
+
+#Include  path.aik
+#Include  JSON.ahk
+#Include  inifile.aik
+
+; g_HotkeyList := []
+; g_isInstall_autohotkey := false
+
+; 封装注册热键 + 描述的方法
+RegisterHotkey(hotkeyStr, funcObj, description := "", Options := "On") {
+    global g_HotkeyList
+    Hotkey(hotkeyStr, funcObj, Options)
+    g_HotkeyList.Push({ key: hotkeyStr, desc: description })
+}
+
+;; 添加热键的描述
+AddHotkeyDesc(hotkeyStr, description := "") {
+    global g_HotkeyList
+    g_HotkeyList.Push({ key: hotkeyStr, desc: description })
+}
+
+; 显示当前已注册的热键和说明
+ShowHotkeyList() {
+    global g_HotkeyList
+
+    tempini_file := A_ScriptDir "/temp.ini"
+    
+    ListViewColums := ["key:热键", "desc:说明"]
+    
+    ;; 将Hotkey写入temp.ini
+    dataStr := JSON.Dump(g_HotkeyList)
+    IniWrite dataStr, tempini_file, "HotkeyList", "HotkeyArray"
+
+    columsStr := JSON.Dump(ListViewColums)
+    IniWrite columsStr, tempini_file, "HotkeyList", "ColumsArray"
+
+
+    run get_root() "/SubUI/24ListViewBox.ahk "  tempini_file
+}
+

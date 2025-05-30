@@ -14,7 +14,8 @@ TrayMenu.Default := k_MenuItemHide
 ;---- Calculate object dimensions based on chosen font size:
 ; 假设你之前定义过 k_FontSize，比如：k_FontSize := 12
 k_KeyWidth := k_FontSize * 3
-k_KeyHeight := k_FontSize * 3 - 6
+; k_KeyHeight := k_FontSize * 3 - 6
+k_KeyHeight := 25
 k_KeyMargin := k_FontSize / 6
 ; k_SpacebarWidth := k_FontSize * 26
 k_KeyWidthHalf := k_KeyWidth / 2
@@ -44,8 +45,8 @@ k_FontStyle := "norm"
 k_FontName := "Segoe UI"
 k_KeyWidth := 30
 k_KeyMargin := 5
-; k_KeyHeight := 30
-k_SpacebarWidth := 206
+
+k_SpacebarWidth := 211
 ; g_keyBoard_color := "Red"
 ; g_keyBoard_icon := "keyboard.ico"
 ; g_keyBoard_sidepic := "sidepic.png"
@@ -62,8 +63,11 @@ _key := Map()               ;; 存储所有的按钮对象
 _keyNameArray := Array()    ;; 存储所有的按钮对象的Text
 
 ; 添加按钮
-_key["appskey"] := myGui.Add("Button", "Section w" k_KeyWidth " xm h" k_KeyHeight " y9", "☆")
-_key["appskey"].OnEvent("Click", StartDrag)
+_key["ico"] := myGui.Add("Picture", "Section w" k_KeyHeight " xm h" k_KeyHeight " y9", g_keyBoard_icon)
+_key["ico"].OnEvent("Click", StartDrag)
+
+; _key["appskey"] := myGui.Add("Button", "Section w" k_KeyWidth " xm h" k_KeyHeight " y9", "☆")
+; _key["appskey"].OnEvent("Click", StartDrag)
 ; _key["appskey"].OnEvent("DoubleClick", 移动窗口)
 
 _key["f1"] := myGui.Add("Button", g_Position, "F1")
@@ -78,13 +82,20 @@ _key["f9"] := myGui.Add("Button", g_Position, "F9")
 _key["f10"] := myGui.Add("Button", g_Position, "F10")
 _key["f11"] := myGui.Add("Button", g_Position, "F11")
 _key["f12"] := myGui.Add("Button", g_Position, "F12")
+_key["f13"] := myGui.Add("Button", "x+1 w22 h" k_KeyHeight, "!")
+
+_key["appskey"] := myGui.Add("Button", "x+1 w21 h" k_KeyHeight, "...")
+_key["appskey"].OnEvent("Click", StartDrag)
+
+;; 右上角
+; _key["ico"] := myGui.Add("Picture", "x+1 w38 h" k_KeyHeight, g_keyBoard_icon)
+; _key["ico"].OnEvent("Click", 移动窗口)
 
 
 
-
-myGui.SetFont("s8 norm")
-_key["exit"] := myGui.Add("Button", Format("h{} w39 x+{}", k_KeyHeight, 1), "退出")
-_key["exit"].OnEvent("Click", 退出)
+; myGui.SetFont("s8 norm")
+; _key["exit"] := myGui.Add("Button", Format("h{} w39 x+{}", k_KeyHeight, 1), "退出")
+; _key["exit"].OnEvent("Click", 退出)
 
 myGui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
 
@@ -107,7 +118,7 @@ _key["equal"] := myGui.Add("Button", g_Position, "=")
 
 width := k_KeyWidth + 9
 _key["bk"] := myGui.Add("Button", "x+1"  " w" width " h" k_KeyHeight, "Bk")
-_key["tab"] := myGui.Add("Button", Format("xm y+{} h{} w{}", 1, k_KeyHeight, k_KeyWidth+10), "Tab")
+_key["tab"] := myGui.Add("Button", Format("xm y+{} h{} w{}", 1, k_KeyHeight, k_KeyWidth+9), "Tab")
 _key["q"] := myGui.Add("Button", g_Position, "Q")
 _key["w"] := myGui.Add("Button", g_Position, "W")
 _key["e"] := myGui.Add("Button", g_Position, "E")
@@ -185,8 +196,14 @@ myGui.SetFont("s9 norm")
 _key["hide"] := myGui.Add("Button", Format("h{} x+{}", k_KeyHeight, 1), "隐藏")
 _key["hide"].OnEvent("Click", 显示或隐藏屏幕键盘)
 
-_key["ico"] := myGui.Add("Picture", "x+1 w40 h" k_KeyHeight, g_keyBoard_icon)
-_key["ico"].OnEvent("Click", 移动窗口)
+;; 右下角
+myGui.SetFont("s8 norm")
+_key["exit"] := myGui.Add("Button", Format("h{} w39 x+{}", k_KeyHeight, 1), "退出")
+_key["exit"].OnEvent("Click", 退出)
+
+
+; _key["ico"] := myGui.Add("Picture", "x+1 w40 h" k_KeyHeight, g_keyBoard_icon)
+; _key["ico"].OnEvent("Click", 移动窗口)
 
 
 myGui.SetFont("s10 norm")
@@ -197,6 +214,8 @@ _key["setting"].OnEvent("Click", 点击SettingCheckBox)
 myGui.SetFont("s9 norm")
 width := k_KeyWidth - 1
 height := k_KeyHeight - 2
+
+
 
 
 _key_sidepic := myGui.Add("Picture", "x456 y36 AltSubmit", g_keyBoard_sidepic)
@@ -245,14 +264,19 @@ for key, value in _key
 
 ;; 统一设置Click事件
 
-_key["f6"].OnEvent("Click", 切换窗口为键盘模态)
-_key["f7"].OnEvent("Click", 切换窗口为语音模态)
-
 _keyClickArray := [
-    "1","2","3","4","5","6","7","8","9","0","sub","equal","bk",
-    "tab","q","w","e","r","t","y","u","i","o","p","lf","rf","fxg",
-    "a","s","d","f","g","h","j","k","l","mh","dyh","enter",
-    "z","x","c","v","b","n","m","dh","jh","xg","space"
+    "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12",
+    "1","2","3","4","5","6","7","8","9","0","sub","equal",
+    "q","w","e","r","t","y","u","i","o","p","lf","rf","fxg",
+    "a","s","d","f","g","h","j","k","l","mh","dyh",
+    "z","x","c","v","b","n","m","dh","jh","xg"
+]
+
+_keyClickArray2 := [
+    "bk",
+    "tab",
+    "enter",
+    "space"
 ]
 
 for index, value in _keyClickArray {
@@ -262,13 +286,18 @@ for index, value in _keyClickArray {
      if cmdstr != ""
      {
         _key[value].SetFont("bold")
-        ; _key[value].OnEvent("Focus", FocusButtonHandle)
+        _key[value].OnEvent("Focus", FocusButtonHandle)
+     } else If (g_keyBoard != "默认键盘") {
+        btnHwnd := _key[value].Hwnd
+        WinSetTransparent(100, "ahk_id " btnHwnd)
      }
 }
 
-_GroupBox.Visible := false
+for index, value in _keyClickArray2 {
+    _key[value].OnEvent("Click", ClickButtonHandle)
+}
 
-
+; _GroupBox.Visible := false
 
 
 ;; 设置窗口的属性
@@ -278,10 +307,10 @@ WinSetTransColor(TransColor " 200", "ahk_id " k_ID)
 
 
 ; 设置所有按钮透明度()
-for key, btn in _key {
-    btnHwnd := btn.Hwnd
-    WinSetTransparent(76, "ahk_id " btnHwnd)
-}
+; for key, btn in _key {
+;     btnHwnd := btn.Hwnd
+;     WinSetTransparent(76, "ahk_id " btnHwnd)
+; }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 移动窗口位置（到上次关闭时的位置或默认位置）

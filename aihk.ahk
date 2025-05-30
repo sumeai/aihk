@@ -44,7 +44,7 @@ loop 5
 ;; 检查 taskName 任务是否已经存在
 TaskExists(taskName) {
     output := ""
-    RunWait("cmd.exe /c schtasks /Query /TN " taskName, , , &output)
+    RunWait("cmd.exe /c schtasks /Query /TN " taskName, , "Hide", &output)
     return InStr(output, taskName)
 }
 
@@ -68,5 +68,5 @@ CreateTaskIfNotExists(taskName, scriptPath) {
     ; )
     ; Run('*RunAs ' cmd)
 
-    MsgBox "任务已创建: " taskName
+    ; MsgBox "任务已创建: " taskName
 }

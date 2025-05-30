@@ -1,5 +1,6 @@
 #include common.aik
 
+;; 得到字符串中第var_pos个字符
 StrGetAt(var_string, var_pos) {
     return SubStr(var_string, var_pos, 1)
 }
@@ -35,7 +36,7 @@ StrGetRight(varString, startpos) {
     return SubStr(varString, startpos)
 }
 
-
+;; 去掉字符串左边的空白字符和指定字符, var_trimlist是将过滤掉的字符列表
 StrTrimLeft(&haystack, trimlist := "") {
     haystack := RegExReplace(haystack, "^\s+", "")
     if trimlist != "" {
@@ -45,6 +46,7 @@ StrTrimLeft(&haystack, trimlist := "") {
     }
 }
 
+;; 去掉字符串右边的空白字符和指定字符, var_trimlist是将过滤掉的字符列表
 StrTrimRight(&haystack, trimlist := "") {
     haystack := RegExReplace(haystack, "\s+$", "")
     if trimlist != "" {
@@ -54,18 +56,20 @@ StrTrimRight(&haystack, trimlist := "") {
     }
 }
 
+;; 去掉字符串左右两边的空白字符和指定字符, var_trimlist是将过滤掉的字符列表
 StrTrim(&inputString, trimlist := "") {
     StrTrimLeft(&inputString, trimlist)
     StrTrimRight(&inputString, trimlist)
 }
 
+;; 返回去除首末空白字符之后的字符串
 TrimSapce(haystack) {
     haystack := RegExReplace(haystack, "^\s+", "")
     haystack := RegExReplace(haystack, "\s+$", "")
     return haystack
 }
 
-RemoveTrailingNewlines(&string) {
+∑删除字符串末尾的回车符号(&string) {
     loop {
         if string = ""
             return
@@ -77,6 +81,8 @@ RemoveTrailingNewlines(&string) {
     }
 }
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 将字符串 SubStr_添加到_LongStr， IsEnter指定是否要添加之前先换行
 AddString(&longStr, subStr, isEnter) {
     if isEnter
         longStr := longStr "`r`n" subStr
@@ -85,13 +91,16 @@ AddString(&longStr, subStr, isEnter) {
     return longStr
 }
 
-ConcatString(&longStr, subStr, connectStr := "") {
+;;------将substr添加到_Longstr之后, 中间用ConnectStr_分隔-------------------
+ConcatString(longStr, subStr, connectStr := "") {
     if (longStr = "")
-        longStr := subStr
+        return subStr
     else
-        longStr := longStr connectStr subStr
+        return longStr connectStr subStr
 }
 
+
+; 将字符串varString中的第一个subString子串删除,
 SubtractString(&varString, subString) {
     varString := StrReplace(varString, subString, "")
 }
@@ -126,20 +135,27 @@ StrInsertAt(&varString, pos, insertText) {
     if !IsInteger(pos)
         return false
     len := StrLen(varString)
+    ;; 插入到varString头部
     if pos <= 1 {
         varString := insertText varString
         return true
     }
+    ;; 追加到varString末尾
     if pos > len {
         varString := varString insertText
         return true
     }
+    ;; 插入到varString中间
     var_left := SubStr(varString, 1, pos - 1)
     var_right := SubStr(varString, pos)
     varString := var_left insertText var_right
     return true
 }
 
+
+;; 将字符串指定区间的字符替换掉，举例：str = 123(ok)456
+;; StrReplaceBetween( str, "no", 4, 7 )
+;; 操作之后 str = 123no456
 StrReplaceBetween(&varString, replaceText, startpos, endpos) {
     len := StrLen(varString)
     if (len <= 0)
@@ -175,6 +191,7 @@ StrReplaceBetween(&varString, replaceText, startpos, endpos) {
     return false
 }
 
+; 将字符串varString中的第一个subString子串删除,
 DelSubString(varString, subString) {
     return StrReplace(varString, subString, "")
 }
@@ -190,11 +207,16 @@ AddString_LineInfo(&longStr, lineFile, thisFunc, lineNumber) {
     AddString(&longStr, var_temp, true)
 }
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 StrLeft2Sub(varString, subString) {
     varPos := InStr(varString, subString)
     if !varPos
         return ""
     return SubStr(varString, 1, varPos - 1)
+;举例..............................
+;MyStringVar = squeezer::imageset
+;Var := StrLeft2Sub(MyStringVar,"::")
+;var 的值为squeezer
 }
 
 StrMid2Sub(varString, subString1, subString2) {
@@ -206,14 +228,23 @@ StrMid2Sub(varString, subString1, subString2) {
     if InStr(varTemp, subString2)
         return StrLeft2Sub(varTemp, subString2)
     return ""
+;举例............................
+;str = [sec]
+;var := StrMid2Sub(str, "[", "]")
+;var 的值为 sec
 }
 
+;;--在varString中，从LR指定的方向搜索subString，并返回subString右边的字符串--
 StrRight2Sub(varString, subString, lr := "R1") {
     varPos := InStr(varString, subString, , , lr)
     if !varPos
         return ""
     varLen := StrLen(varString)
     return SubStr(varString, varPos + StrLen(subString))
+;举例..............................
+;MyStringVar = squeezer::imageset
+;fileExtVar = StrRight2Sub(MyStringVar,"::")
+;fileExtVar的值为"imageset"
 }
 
 StrSplit2Sub(varString, subString, &outStringLeft, &outStringRight) {
@@ -223,6 +254,11 @@ StrSplit2Sub(varString, subString, &outStringLeft, &outStringRight) {
     outStringLeft := SubStr(varString, 1, varPos - 1)
     outStringRight := SubStr(varString, varPos + StrLen(subString))
     return true
+    
+;举例............................
+;str = cwin@live.cn
+;var := StrSplit2Sub(str, "@", var_left, var_right)
+;var_left 的值为 cwin, var_right 的值为 live.cn
 }
 
 SwapString(varString, subString) {
@@ -233,11 +269,12 @@ SwapString(varString, subString) {
     return varString
 }
 
+;; 得到字符串中最后一个单词（指定长度的字符串）
 StrLastWord(inputString, count) {
     outputVar := ""
-    if (count > 0) {
+    if (count > 0) {	;; 返回字符串中，后面指定位数的子串
         outputVar := SubStr(inputString, -count + 1)
-    } else {
+    } else { 	;; 如果指定的单词长度小于等于0，那么自动寻找最后一个单词
         varLen := StrLen(inputString)
         var_index := 0
         Loop varLen {
@@ -250,7 +287,7 @@ StrLastWord(inputString, count) {
                 if !RegExMatch(var_char, "\s")
                     outputVar := var_char outputVar
                 else
-                    break
+                    break	; 最后一个单词查找完毕，结束查找
             }
         }
     }
@@ -262,10 +299,12 @@ StrFirstWord(InputString, Count) {
     return SubStr(InputString, 1, Count)
 }
 
+;; 得到指定字符串中，第一个非空字符返回给var_char
 get_first_char(Haystack, &var_char) {
     return RegExMatch(Haystack, "^\S", &var_char)
 }
 
+; 如果InputString 中第一个非空字符等于varChar则返回真
 equal_first_char(Haystack, Char_) {
     if RegExMatch(Haystack, "^\S", &var_char) > 0 {
         return var_char = Char_
@@ -304,17 +343,22 @@ StrHaveTerminatChar(InputString) {
     return false
 }
 
+;; 指定位置的字符是否结束符,
+;; 返回值：0 不是结束符; 1 是单字符结束符; 2 是双字节结束符;
 is_terminate_pos(InputString, pos, TerminatingCharacters := "") {
     len := StrLen(InputString)
+	;; 如果没有指定结束字符串，则取用默认的结束字符串
     if (TerminatingCharacters = "")
         TerminatingCharacters := GetTerminatingCharacters()
 
+	;; 检查指定位置的单字节字符是不是结束字符
     if (pos > 0 && pos <= len) {
         var_char := SubStr(InputString, pos, 1)
         if RegExMatch(var_char, "\s") || InStr(TerminatingCharacters, var_char)
             return 1
     }
 
+	;; 在没有查找到ASCII字符时，尝试查找双字节字符
     if (pos > 0 && pos < len) {
         var_char := SubStr(InputString, pos, 2)
         if InStr(TerminatingCharacters, var_char)
@@ -324,7 +368,7 @@ is_terminate_pos(InputString, pos, TerminatingCharacters := "") {
     return 0
 }
 
-
+;; 从一个字符串的指定位置开始，向前查找最近的一个单词，并返回到_outword
 find_pre_word(InputString, offset, &_outword, &_startpos, &_endpos) {
     if (offset < 2)
         return false
@@ -333,6 +377,7 @@ find_pre_word(InputString, offset, &_outword, &_startpos, &_endpos) {
     endpos := ""
     len := StrLen(InputString)
 
+	;;---当Offset > strlen() 时， 认为查找最后一个单词---------------------------
     if (offset > len) {
         Loop len {
             index := len - A_Index + 1
@@ -365,7 +410,8 @@ find_pre_word(InputString, offset, &_outword, &_startpos, &_endpos) {
         }
         return false
     }
-
+    
+	;;---当 1 <= offset <= strlen() 时，正常查找前一位置的单词-------------------
     word_found := false
     Loop offset {
         index := offset - A_Index + 1
@@ -375,32 +421,33 @@ find_pre_word(InputString, offset, &_outword, &_startpos, &_endpos) {
             if (var_re > 0)
                 endpos := "找到分隔符"
         } else if (endpos = "找到分隔符") {
-            if (var_re = 0) {
+            if (var_re = 0) { ;; 指定位置非结束符
                 if (index <= 1) {
-                    endpos := index
-                } else {
+                    endpos := index ;; 已经找到了前一单词的结束位置
+                } else { ;; 再检查前一个位置也不是双字节结束符时，才能确定index位置不是结束符
                     prev_re := is_terminate_pos(InputString, index - 1)
                     if (prev_re = 2) {
-                        continue
+                        continue ;; 虽然index位置的单个字符不是结束符，但index-1开始的两个字节的双字符是结束符
                     } else {
-                        endpos := index
+                        endpos := index ;; 已经找到了前一单词的结束位置
                     }
                 }
             }
-        } else {
-            if (var_re = 1) {
+        } else { ;; 已经找到了结束符, 寻找单词的开始位置
+            if (var_re = 1) {  ;; 遇到单字节结束符
                 startpos := index + 1
                 break
-            } else if (var_re = 2) {
+            } else if (var_re = 2) { ;; 遇到双字节结束符
                 startpos := index + 2
                 break
             }
         }
     }
-
+	;; 如果找到最前也没有找到单词开始符号，则认为开始符号就是第一个字符
     if (index == 1 && startpos = "" && endpos != "找到分隔符" && endpos >= 1)
         startpos := 1
 
+	;; 如果成功找到了单词的开始字符与结束字符，那么返回开始字符到结束字符的子串
     if (startpos is Integer) && (endpos is Integer) {
         if (endpos >= startpos && startpos > 0 && endpos <= offset) {
             _startpos := startpos
@@ -413,7 +460,7 @@ find_pre_word(InputString, offset, &_outword, &_startpos, &_endpos) {
     return false
 }
 
-
+;; 从一个字符串的指定位置开始，向后查找最近的一个单词，并返回到_outword
 find_next_word(InputString, offset, &_outword, &_startpos, &_endpos) {
     if (InputString = "")
         return false
@@ -434,6 +481,7 @@ find_next_word(InputString, offset, &_outword, &_startpos, &_endpos) {
             if (startpos = "") {
                 var_char := SubStr(InputString, index, 1)
                 if (var_re = 0) {
+			;; 确保a_index位置不是双字节结束符的组成部分
                     if (index > 1) {
                         if (is_terminate_pos(InputString, index - 1) = 2)
                             continue
@@ -468,14 +516,15 @@ find_next_word(InputString, offset, &_outword, &_startpos, &_endpos) {
             if (var_re > 0)
                 startpos := "找到分隔符"
         } else if (startpos = "找到分隔符") {
-            if (var_re = 0) {
+            if (var_re = 0) { ;; 指定位置非结束符
+	    	;; 再检查前一个位置也不是双字节结束符时，才能确定index位置不是结束符
                 if (is_terminate_pos(InputString, index - 1) = 2)
-                    continue
+                    continue ;; 虽然index位置的单个字符不是结束符，但index-1开始的两个字节的双字符是结束符
                 else
-                    startpos := index
+                    startpos := index ;; 已经找到了前一单词的结束位置
             }
         } else {
-            if (var_re > 0) {
+            if (var_re > 0) {  ;; 找到单词结束符
                 endpos := index - 1
                 break
             }
@@ -499,7 +548,12 @@ find_next_word(InputString, offset, &_outword, &_startpos, &_endpos) {
     return false
 }
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 对字符串队列的处理函数，字符串队伍如:
+;; 中国,美国,英国,日本,朝鲜,
+;; ∑增加字符串队列() 将新字符串newstr添加到strlist队列，返回值为是否在队列中找到相同的字符串
+;; strlist队列以%separator%分隔字符串，bFront指定添加到队列头部
+;; MaxCount 指明strlist队列中最大包含项的数量
 ∑Add字符串队列(&strlist, newstr, separator, bFront := true, maxcount := 50) {
     if (newstr = "")
         return false
@@ -544,7 +598,8 @@ find_next_word(InputString, offset, &_outword, &_startpos, &_endpos) {
     return true
 }
 
-
+;;---添加newstr到队列strlist, bFront指定添加到队列头还是队列末尾------------
+;; 如果strlist中已经有newstr项, 则不再添加
 StrListAdd(&strlist, newstr, separator, bFront := false) {
     if (newstr = "")
         return false
@@ -566,6 +621,7 @@ StrListAdd(&strlist, newstr, separator, bFront := false) {
 }
 
 
+;;---从strlist队列中删除包含Delstr的项--------------------------------------
 StrListDel(&strlist, delstr, separator) {
     if (delstr = "" || !InStr(strlist, delstr))
         return false
@@ -584,7 +640,7 @@ StrListDel(&strlist, delstr, separator) {
     return true
 }
 
-
+;;---从strlist队列中值等于Delstr的项----------------------------------------
 StrListDelete(&strlist, delstr, separator) {
     if (delstr = "" || !InStr(strlist, delstr))
         return false
@@ -648,6 +704,7 @@ StrListMod(&strlist, oldstr, newstr, separator, bAdd := false) {
 }
 
 
+;; @brief	在队列strlist中查找值为searchstr的项
 StrListFind( strlist, searchstr, separator )
 {
 	loop parse, strlist, separator
@@ -660,7 +717,7 @@ StrListFind( strlist, searchstr, separator )
 	return 0
 }
 
-
+;; @brief	获取队列中指定序号的项的值
 
 ∑Find字符串队列(strlist, searchstr, separator) {
     return StrListFind(strlist, searchstr, separator)
@@ -680,7 +737,7 @@ StrListGetAt(strlist, var_index, separator) {
     return StrListGetAt(strlist, var_index, separator)
 }
 
-
+;; @brief	从队列中清除指定序号的项
 StrListEraseAt(& strlist, var_index, separator) {
     var_temp := ""
     loop parse, strlist, separator {
@@ -853,8 +910,6 @@ StrListInStrList(strList1, Delimiter1, strList2, Delimiter2, CaseSensitive := fa
 }
 
 
-
-
 ;; 为指定的字符串两端添加字符（默认为双引号）, 如果前面或后面已经有匹配的字符，则退出
 StrAddQuot(& _str_, l_ := "", r_ := "") {
     if (l_ = "") {
@@ -883,7 +938,7 @@ StrAddQuot(& _str_, l_ := "", r_ := "") {
 
 
 
-;; bool 
+;; bool 在_str_字符串的@标识符处，插入字符串newtext_
 StrInsert( &_str_, needle_, newtext_ := " ", offset_ := 0, CaseSensitive_ := true ) {
     if !InStr(needle_, "@") {
         return false

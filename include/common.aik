@@ -3,9 +3,6 @@
 
 #Requires AutoHotkey v2.0
 
-
-; g_isInstall_autohotkey := false
-
 ∑是否安装了AutoHotkey() {
 	global g_isInstall_autohotkey
 
@@ -534,10 +531,12 @@ is_folder(Path) {
 ;; 更换本程序图标
 ;; bForce 指定如果是编译成了EXE文件，是否要更换图标
 ;; Flag_  指定是否要锁定图标，即当Suspend时不将图标更换到默认的S形图标
-change_icon(var_icofile := "", bForce := false, Flag_ := "") {
+change_icon(var_icofile := "", bForce := false, Flag_ := false) {
     ; 如果脚本是编译的EXE，且未强制换图标，则退出
     if (A_IsCompiled && !bForce)
         return
+
+    
 
     ; 如果未指定图标文件，尝试用脚本同名路径的 ico 文件
     if (var_icofile = "") {
@@ -545,11 +544,15 @@ change_icon(var_icofile := "", bForce := false, Flag_ := "") {
         var_icofile := OutDir "\" OutNameNoExt ".ico"
     } else {
         SplitPath var_icofile, , &OutDir, &OutExtension, &OutNameNoExt, &OutDrive
-        if (OutExtension != "ico")
+
+        ; msgbox "var_icofile: " var_icofile ", OutDir: " OutDir ", OutExtension: " OutExtension ", OutNameNoExt: " OutNameNoExt ", OutDrive: " OutDrive
+
+        if (OutExtension != "ico" and OutExtension != "png" and OutExtension != "jpg") {
             return  ; 非 ico 文件，退出
+        }
 
         ; 如果未提供路径，则在脚本路径中寻找
-        if (OutDir = "") {
+        if (OutDir = "" and OutNameNoExt = "") {
             SplitPath A_ScriptFullPath, , &OutDir
             var_icofile := OutDir "\" OutNameNoExt ".ico"
         }
@@ -560,6 +563,7 @@ change_icon(var_icofile := "", bForce := false, Flag_ := "") {
         TraySetIcon(var_icofile, , Flag_)
     }
 }
+
 
 
 ; ;; 调用运行一个脚本，本脚本文件a_IsComplied时，被调用的脚本优先调用编译后的EXE文件
