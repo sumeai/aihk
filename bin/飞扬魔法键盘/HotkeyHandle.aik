@@ -1,12 +1,33 @@
 
-AddHotkeyDesc("AppsKey", "显示或隐藏飞扬键盘")
-Hotkey "AppsKey", AppsKeyHandle, "On"
+; AddHotkeyDesc("AppsKey", "显示或隐藏飞扬键盘")
+AppsKey::AppsKeyHandle()
+; *~AppsKey up::Return
+
+AddHotkeyDesc("AppsKey & Alt", "AppsKey & Alt ==> 显示或隐藏飞扬键盘")
+AppsKey & Alt:: 显示或隐藏屏幕键盘() 
+>!AppsKey:: 显示或隐藏屏幕键盘() 
 
 AddHotkeyDesc(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
-Hotkey ">^Alt", AppsKeyHandle, "On"
+>^Alt:: 显示或隐藏屏幕键盘() 
 
-∑设置热键()
+;; Alt+capslock 切换到最近键盘
+AddHotkeyDesc(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
+>^!Space:: 切换到最近键盘()
+AddHotkeyDesc("!CapsLock::", "Alt+capslock ==> 切换到最近键盘")
+!CapsLock:: 切换到最近键盘()
+AddHotkeyDesc("CapsLock & Tab::", "切换到最近键盘")
+CapsLock & Tab:: 切换到最近键盘()
 
+;; 查看所有的快捷键
+AddHotkeyDesc(">!^/", "右Alt+Ctrl+/ ==> 查看所有的快捷键")
+>!^/:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+AddHotkeyDesc("CapsLock & /", "查看所有的快捷键")
+CapsLock & /:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 以下快捷键在suspend状态下依然生效
 #SuspendExempt true
 
@@ -18,27 +39,24 @@ AppsKey & RShift:: 勾选SettingCheckBox()
 
 
 ;; AppsKey & esc 退出 飞扬魔法键盘
-AddHotkeyDesc(">^!esc", "右Ctrl+Alt+ESC ==> 退出APP")
+AddHotkeyDesc(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
 >^!esc:: 退出()
-AddHotkeyDesc("AppsKey & esc", "退出APP")
+AddHotkeyDesc("AppsKey & esc", "退出飞扬魔法键盘")
 AppsKey & esc:: 退出()
+AddHotkeyDesc("Capslock & esc", "退出飞扬魔法键盘")
+capslock & esc:: 退出()
 
-;; AppsKey & Space 切换到最近键盘
-AddHotkeyDesc(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
->^!Space:: 切换到最近键盘()
-AddHotkeyDesc("AppsKey & Space", "切换到最近键盘")
-AppsKey & Space:: 切换到最近键盘()
 
 ;; 激活当前键盘
-AddHotkeyDesc("AppsKey & CapsLock", "激活当前键盘")
-AppsKey & CapsLock:: WinActivate("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
+AddHotkeyDesc("^CapsLock", "Ctrl+capslock ==> 激活当前键盘")
+^CapsLock:: WinActivate("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
 
-;; 查看所有的快捷键
-AddHotkeyDesc(">!^/", "右Alt+Ctrl+/ ==> 查看所有的快捷键")
->!^/:: ShowHotkeyList()
-AddHotkeyDesc("AppsKey & /", "查看所有的快捷键")
-AppsKey & /:: ShowHotkeyList()
 
+;; 挂起
+AddHotkeyDesc("Capslock & Space", "Suspend 暂停快捷键")
+AddHotkeyDesc("AppsKey & Space", "Suspend 暂停快捷键")
+Capslock & Space::  Suspend
+AppsKey & Space::  Suspend
 
 
 #HotIf WinActive("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
@@ -48,12 +66,17 @@ esc:: 退出()
 
 #SuspendExempt false
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+∑设置热键()
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
  ~*Backspace::{
      global g_bAutoPressBtn, k_ID
      if WinActive("新增键盘")
          return
-     if g_bAutoPressBtn
+     if g_bAutoPressBtn and WinExist("ahk_id " k_ID)
      {
          ControlClick "Bk", "ahk_id " k_ID, "", "LEFT", 1, "D"
          KeyWait "Backspace"
@@ -81,7 +104,7 @@ esc:: 退出()
      }
      g_bShiftDown := !g_bShiftDown
      刷新界面按钮显示(g_keyBoard_name)
-     if g_bShiftDown
+     if g_bShiftDown  and WinExist("ahk_id " k_ID)
      {
          ControlClick "Shift", "ahk_id " k_ID, "", "LEFT", 1, "D"
          _key["shift"].Text := "SHIFT"
@@ -94,6 +117,9 @@ esc:: 退出()
  }
  
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 以下是响应函数
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ∑设置热键(bActive := true) {
     keyBoard_name := ∑获取当前键盘名称()
@@ -140,13 +166,58 @@ esc:: 退出()
     }
 }
 
+
+ 按键响应(ThisHotkey) {
+     global g_bAutoPressBtn, k_ID, g_keyBoard_name
+     if WinActive("ahk_id " k_ID)
+         return
+     if g_bAutoPressBtn
+     {
+         g_ThisHotkey := StrReplace(ThisHotkey, "~")
+         g_ThisHotkey := StrReplace(g_ThisHotkey, "*")
+         var_keyName := ""
+         caption := ∑获得按键按钮的标题(g_keyBoard_name, g_ThisHotkey, &var_keyName)
+
+        ;  global _key_%var_keyName%
+         g_ThisKeyName := GetButtonTextByKeyName(var_keyName)
+         if g_ThisKeyName = ""
+             g_ThisKeyName := g_ThisHotkey
+         SetTitleMatchMode 3
+         if WinExist("ahk_id " k_ID){
+             ControlClick g_ThisKeyName, "ahk_id " k_ID, "", "LEFT", 1, "D"
+         }
+         ∑执行键盘按键响应(var_keyName)
+     }
+ }
+           
+
  
+响应按键释放(ThisHotkey) {
+    global k_ID, g_keyBoard_name, _key
+    g_ThisHotkey := StrReplace(A_ThisHotkey, "~")
+    g_ThisHotkey := StrReplace(g_ThisHotkey, "*")
+    g_ThisHotkey := StrReplace(g_ThisHotkey, A_Space "Up")
+    var_keyName := ""
+    caption := ∑获得按键按钮的标题(g_keyBoard_name, g_ThisHotkey, &var_keyName)
+
+    g_ThisKeyName := GetButtonTextByKeyName(var_keyName)
+    if g_ThisKeyName = ""
+         g_ThisKeyName := g_ThisHotkey
+
+    SetTitleMatchMode 3
+    if WinExist("ahk_id " k_ID) {
+        ControlClick g_ThisKeyName, "ahk_id " k_ID, "", "LEFT", 1, "U"
+    }
+ }
+
+
+
 LShift按键响应() {
      global _key, k_ID, g_bShiftDown
      if WinActive("新增键盘")
          return
      myGui.Submit(false)
-     if !_key["setting"].value
+     if !_key["setting"].value  and WinExist("ahk_id " k_ID)
      {
          g_ThisHotkey := SubStr(A_ThisHotkey, 4)
          ControlClick g_ThisHotkey, "ahk_id " k_ID, "", "LEFT", 1, "D"
@@ -164,3 +235,137 @@ LShift按键响应() {
          }
      }
  }
+
+ 
+AppsKeyHandle(*){
+    显示或隐藏屏幕键盘()
+    return
+}
+
+
+ ∑执行键盘按键响应(Hotkey_) {
+
+    ; msgbox("Hotkey_ = " Hotkey_ )
+
+
+     global g_iniContent, g_bShiftDown
+     Hotkey_ := StrReplace(Hotkey_, "~")
+     Hotkey_ := StrReplace(Hotkey_, "*")
+     if Hotkey_ = ""
+         return
+     var_keyboard := ∑获取当前键盘名称()
+     var_ctrlkey := ∑检查按下的控制键()
+     if var_ctrlkey != ""
+         Hotkey_ := var_ctrlkey Hotkey_
+     if g_bShiftDown
+     {
+         if InStr(var_ctrlkey, "+")
+             Hotkey_ := StrReplace(Hotkey_, "+", "")
+         else
+             Hotkey_ := "+" Hotkey_
+     }
+     cmdstr := FindFromIniMem(g_iniContent, var_keyboard, Hotkey_, "")
+     if cmdstr = ""
+     {
+         if Hotkey_ ~= "[\^\+!#]"
+             SendPlay Hotkey_
+         else
+         {
+             keyname := StrReplace(Hotkey_, "~")
+             keyname := StrReplace(keyname, "*")
+
+             if keyname != "Space"
+                 cmdstr := "1|send)" StrLower( ValnameToKeyname(keyname) )
+         }
+     }
+     if cmdstr != ""
+     {
+         TipCmdString(cmdstr)
+         RunKeyboardCmdstr(cmdstr)
+     }
+ }
+  
+
+
+ 
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ∑鼠标单击按键(key_, bForce := false) {
+
+     global g_keyBoard, _key, k_ID, g_bAutoPressBtn, g_bShiftDown
+     if !bForce
+     {
+         MouseGetPos &OutputVarX, &OutputVarY, &OutputVarWin, &OutputVarControl, 1
+         if k_ID != OutputVarWin
+            ; MsgBox("k_ID = " k_ID )
+         
+            return
+     }
+
+
+     var_key := key_.Text
+
+
+     var_ctrlkey := ∑检查按下的控制键()
+     if var_ctrlkey != ""
+         var_key := var_ctrlkey var_key
+
+
+     if g_bShiftDown
+     {
+         if InStr(var_ctrlkey, "+")
+             var_key := StrReplace(var_key, "+", "")
+         else
+             var_key := "+" var_key
+     }
+     if _key["setting"].Value
+     {
+         if g_bAutoPressBtn
+             ∑编辑按键(var_key)
+     }
+     else 
+     {
+        ∑执行按键(var_key)
+     }
+
+     return true
+ } 
+
+
+
+ ∑编辑按键(key_) {
+     global g_bAutoPressBtn, g_inicontent, g_inifile
+     if key_ = "" || ∑获取当前键盘名称() = "默认键盘"
+         return
+     g_bAutoPressBtn := false
+     var_value := FindFromIniMem(g_inicontent, ∑获取当前键盘名称(), key_, "")
+     var_temp := key_ " ="
+     cmdstr := ∑编辑飞扬命令串(var_value, var_temp)
+     if cmdstr != ""
+     {
+         if cmdstr = "$space$"
+             cmdstr := ""
+         var_value := cmdstr
+         write_ini(g_inifile, ∑获取当前键盘名称(), key_, var_value)
+         g_iniContent := IniFileRead(g_inifile)
+         if InStr(cmdstr, ")")
+         {
+             cmdStringSplit(cmdstr, &var_opt)
+             if RegExMatch(var_opt, "i)(?<=name:).*?(?=$|\)|\|)", &var_match) && var_match != ""
+                 _key[StrLower(key_)].Text := var_match
+         }
+     }
+     g_bAutoPressBtn := true
+ }
+ 
+ ∑执行按键(key_) {
+     var_keyboard := ∑获取当前键盘名称()
+
+    ;  msgbox("key_ = " key_ ", var_keyboard = " var_keyboard)
+
+     cmdstr := var_keyboard != "默认键盘" ? FindFromIniMem(g_iniContent, var_keyboard, key_, "") : ""
+     if cmdstr = ""
+         cmdstr := "1|send)" ValnameToKeyname(key_)
+     RunKeyboardCmdstr(cmdstr)
+     TipCmdString(cmdstr)
+ }
+

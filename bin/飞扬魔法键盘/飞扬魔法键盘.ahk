@@ -142,43 +142,20 @@ return
  
  保存当前窗口位置() {
      global k_ID, g_keyBoard_name
-     WinGetPos &OutX, &OutY, &OutWidth, &OutHeight, "ahk_id " k_ID
-     WriteTempIni("飞扬魔法键盘", g_keyBoard_name "_winx", OutX)
-     WriteTempIni("飞扬魔法键盘", g_keyBoard_name "_winy", OutY)
- }
- 
-
- 
- 
- 按键响应(ThisHotkey) {
-     global g_bAutoPressBtn, k_ID, g_keyBoard_name
-     if WinActive("ahk_id " k_ID)
-         return
-     if g_bAutoPressBtn
-     {
-         g_ThisHotkey := StrReplace(ThisHotkey, "~")
-         g_ThisHotkey := StrReplace(g_ThisHotkey, "*")
-         var_keyName := ""
-         caption := ∑获得按键按钮的标题(g_keyBoard_name, g_ThisHotkey, &var_keyName)
-
-        ;  global _key_%var_keyName%
-         g_ThisKeyName := GetButtonTextByKeyName(var_keyName)
-         if g_ThisKeyName = ""
-             g_ThisKeyName := g_ThisHotkey
-         SetTitleMatchMode 3
-         ControlClick g_ThisKeyName, "ahk_id " k_ID, "", "LEFT", 1, "D"
-         ∑执行键盘按键响应(var_keyName)
+     if WinActive("ahk_id " k_ID) {
+         WinGetPos &OutX, &OutY, &OutWidth, &OutHeight, "ahk_id " k_ID
+         WriteTempIni("飞扬魔法键盘", g_keyBoard_name "_winx", OutX)
+         WriteTempIni("飞扬魔法键盘", g_keyBoard_name "_winy", OutY)
      }
  }
-                             
+ 
+                   
  模拟点击按钮(*) {
      global g_bAutoPressBtn, k_ID, _key
      if WinActive("ahk_id " k_ID) || WinActive("新增键盘")
          return
      if g_bAutoPressBtn
      {
-
-
          g_ThisHotkey := StrReplace(A_ThisHotkey, "~")
          g_ThisHotkey := StrReplace(g_ThisHotkey, "*")
 
@@ -218,21 +195,6 @@ return
     PostMessage(WM_LBUTTONUP, 0, 0, , hCtrl)
 }
  
- 响应按键释放(ThisHotkey) {
-     global k_ID, g_keyBoard_name, _key
-     g_ThisHotkey := StrReplace(A_ThisHotkey, "~")
-     g_ThisHotkey := StrReplace(g_ThisHotkey, "*")
-     g_ThisHotkey := StrReplace(g_ThisHotkey, A_Space "Up")
-     var_keyName := ""
-     caption := ∑获得按键按钮的标题(g_keyBoard_name, g_ThisHotkey, &var_keyName)
-
-     g_ThisKeyName := GetButtonTextByKeyName(var_keyName)
-     if g_ThisKeyName = ""
-         g_ThisKeyName := g_ThisHotkey
-     SetTitleMatchMode 3
-     ControlClick g_ThisKeyName, "ahk_id " k_ID, "", "LEFT", 1, "U"
- }
-
  ;; 根据按钮变量名，返回按钮显示的文本（例如：keyName="FXG" ==> "\"）
  GetButtonTextByKeyName(keyName){
     global _key
@@ -243,41 +205,13 @@ return
  }
  
 
-AppsKeyHandle(*){
-    显示或隐藏屏幕键盘()
-}
-
-
  重新加载(*) {
      Reload()
  }
  
 
-
-
- 
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  
- 新增键盘(*) {
-     global g_inifile, g_iniContent
-     var_keyboard := myinput("新增键盘", "请输入要新建的键盘名称：")
-     if var_keyboard != ""
-     {
-         if RegExMatch(var_keyboard, "[\[\]]")
-         {
-             MsgBox "键盘名称中不能包含 “[”和 “]”！"
-             return
-         }
-         var_colorList := "橙色|丁香紫|红色|黄色|蓝色|绿色|玫瑰红|青色|设置|天蓝|银色|紫色"
-         var_keycolor := InputListBox(var_colorList, "请选择键盘颜色")
-         if var_keycolor != ""
-         {
-             write_ini(g_inifile, var_keyboard, "Color", var_keycolor)
-             g_iniContent := IniFileRead(g_inifile)
-             ∑切换键盘(var_keyboard)
-         }
-     }
- }
  
  选择键盘(ItemName, *) {
      global g_bAutoPressBtn
@@ -293,9 +227,6 @@ AppsKeyHandle(*){
  }
 
  
-
-
- 
  用飞扬小字典编辑键盘(*) {
      var_root := ∑获取根目录()
      var_file := var_root "\bin\dict\dict.ahk"
@@ -307,131 +238,6 @@ AppsKeyHandle(*){
      return
  }
  
-
- 
- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
- ∑鼠标单击按键(key_, bForce := false) {
-
-     global g_keyBoard, _key, k_ID, g_bAutoPressBtn, g_bShiftDown
-     if !bForce
-     {
-         MouseGetPos &OutputVarX, &OutputVarY, &OutputVarWin, &OutputVarControl, 1
-         if k_ID != OutputVarWin
-            ; MsgBox("k_ID = " k_ID )
-         
-            return
-     }
-
-
-     var_key := key_.Text
-
-
-     var_ctrlkey := ∑检查按下的控制键()
-     if var_ctrlkey != ""
-         var_key := var_ctrlkey var_key
-
-
-     if g_bShiftDown
-     {
-         if InStr(var_ctrlkey, "+")
-             var_key := StrReplace(var_key, "+", "")
-         else
-             var_key := "+" var_key
-     }
-     if _key["setting"].Value
-     {
-         if g_bAutoPressBtn
-             ∑编辑按键(var_key)
-     }
-     else 
-     {
-        ∑执行按键(var_key)
-     }
-
-     return true
- }
- 
- ∑编辑按键(key_) {
-     global g_bAutoPressBtn, g_inicontent, g_inifile
-     if key_ = "" || ∑获取当前键盘名称() = "默认键盘"
-         return
-     g_bAutoPressBtn := false
-     var_value := FindFromIniMem(g_inicontent, ∑获取当前键盘名称(), key_, "")
-     var_temp := key_ " ="
-     cmdstr := ∑编辑飞扬命令串(var_value, var_temp)
-     if cmdstr != ""
-     {
-         if cmdstr = "$space$"
-             cmdstr := ""
-         var_value := cmdstr
-         write_ini(g_inifile, ∑获取当前键盘名称(), key_, var_value)
-         g_iniContent := IniFileRead(g_inifile)
-         if InStr(cmdstr, ")")
-         {
-             cmdStringSplit(cmdstr, &var_opt)
-             if RegExMatch(var_opt, "i)(?<=name:).*?(?=$|\)|\|)", &var_match) && var_match != ""
-                 _key[StrLower(key_)].Text := var_match
-         }
-     }
-     g_bAutoPressBtn := true
- }
- 
- ∑执行按键(key_) {
-     var_keyboard := ∑获取当前键盘名称()
-
-    ;  msgbox("key_ = " key_ ", var_keyboard = " var_keyboard)
-
-     cmdstr := var_keyboard != "默认键盘" ? FindFromIniMem(g_iniContent, var_keyboard, key_, "") : ""
-     if cmdstr = ""
-         cmdstr := "1|send)" ValnameToKeyname(key_)
-     RunKeyboardCmdstr(cmdstr)
-     TipCmdString(cmdstr)
- }
-
-
-
- ∑执行键盘按键响应(Hotkey_) {
-
-    ; msgbox("Hotkey_ = " Hotkey_ )
-
-
-     global g_iniContent, g_bShiftDown
-     Hotkey_ := StrReplace(Hotkey_, "~")
-     Hotkey_ := StrReplace(Hotkey_, "*")
-     if Hotkey_ = ""
-         return
-     var_keyboard := ∑获取当前键盘名称()
-     var_ctrlkey := ∑检查按下的控制键()
-     if var_ctrlkey != ""
-         Hotkey_ := var_ctrlkey Hotkey_
-     if g_bShiftDown
-     {
-         if InStr(var_ctrlkey, "+")
-             Hotkey_ := StrReplace(Hotkey_, "+", "")
-         else
-             Hotkey_ := "+" Hotkey_
-     }
-     cmdstr := FindFromIniMem(g_iniContent, var_keyboard, Hotkey_, "")
-     if cmdstr = ""
-     {
-         if Hotkey_ ~= "[\^\+!#]"
-             SendPlay Hotkey_
-         else
-         {
-             keyname := StrReplace(Hotkey_, "~")
-             keyname := StrReplace(keyname, "*")
-
-             if keyname != "Space"
-                 cmdstr := "1|send)" StrLower( ValnameToKeyname(keyname) )
-         }
-     }
-     if cmdstr != ""
-     {
-         TipCmdString(cmdstr)
-         RunKeyboardCmdstr(cmdstr)
-     }
- }
-  
 
  RunKeyboardCmdstr(cmdstr_) {
      cmdStringSplit(cmdstr_, &var_opt)
@@ -582,15 +388,7 @@ AppsKeyHandle(*){
      keyname_ := keyName
      return caption_
  }
- 
- ∑修改按键按钮的标题(keyBoard_, keyChar_, caption_ := "") {
-     var_caption := ∑获得按键按钮的标题(keyBoard_, keyChar_, &keyName)
-     if caption_ = ""
-         caption_ := var_caption
 
-    if myGui.HasProp("_key_" . keyName)
-        myGui["_key_" . keyName].Text := caption_
- }
  
  刷新界面按钮显示(var_keyboard) {
      k_ASCII := 45
@@ -673,7 +471,7 @@ GetCmdStringTip(cmdstr_, active_ := false) {
         } else {
             ;; 不是开头的数字，也不是带有:的属性，那么就是命令类型
             ;; 如果有多个命令类型， 用空格连接起来
-            msgbox "cmd_key = " cmd_key
+            ; msgbox "cmd_key = " cmd_key
             cmd_key := ConcatString(cmd_key, opt_key, " ")
         }
     }
@@ -723,65 +521,6 @@ TipCmdString(cmdstr_) {
      }
  }
  
-移动窗口(*) {
-     global g_bMoveWindow, g_mouse_x0, g_mouse_y0, g_win_x0, g_win_y0, k_ID, _key
-     g_bMoveWindow := !g_bMoveWindow
-     if g_bMoveWindow
-     {
-         CoordMode "Mouse", "Screen"
-         MouseGetPos &g_mouse_x0, &g_mouse_y0
-
-         WinGetPos &g_win_x0, &g_win_y0, &OutWidth, &OutHeight, "ahk_id " k_ID
-
-         SetTimer 定时器飞扬魔法键盘窗口跟随鼠标移动, 100
-         var_tip := "◇移动鼠标调整键盘窗口位置`n◇按下鼠标左键停止移动窗口`n◇空格键恢复窗口到默认位置"
-         TrayTip "移动飞扬魔法键盘窗口", var_tip
-         _key["space"].Text := "窗口跟随鼠标移动"
-         Hotkey "LButton", 停止移动窗口, "On"
-         Hotkey "Space", 移动窗口到默认位置, "On"
-     }
-     else
-         停止移动窗口()
- }
-
- 
-停止移动窗口(*) {
-     global g_bMoveWindow
-     TrayTip()
-     g_bMoveWindow := false
-     SetTimer 定时器飞扬魔法键盘窗口跟随鼠标移动, 0
-     ∑修改按键按钮的标题(∑获取当前键盘名称(), "Space")
-     Hotkey "LButton", 停止移动窗口, "Off"
-     Hotkey "Space", 移动窗口到默认位置,  "Off"
- }
- 
-移动窗口到默认位置(*) {
-     global k_ID, k_WorkAreaRight, k_WorkAreaLeft, k_WindowWidth, k_WorkAreaBottom, k_WindowHeight
-     停止移动窗口()
-     k_WindowX := k_WorkAreaRight - k_WorkAreaLeft - k_WindowWidth
-     k_WindowX := k_WindowX / 2 + k_WorkAreaLeft
-     k_WindowY := k_WorkAreaBottom - k_WindowHeight
-     WinMove k_WindowX, k_WindowY, , , "ahk_id " k_ID
- }
- 
-定时器飞扬魔法键盘窗口跟随鼠标移动(*) {
-     global g_bMoveWindow, k_ID, g_mouse_x0, g_mouse_y0, g_win_x0, g_win_y0
-     if !g_bMoveWindow || GetKeyState("LButton", "P")
-     {
-         停止移动窗口()
-         return
-     }
-     if GetKeyState("Ctrl", "P")
-     {
-         停止移动窗口()
-         移动窗口到默认位置()
-         return
-     }
-     CoordMode "Mouse", "Screen"
-     MouseGetPos &g_mouse_x, &g_mouse_y
-     WinMove g_win_x0 + g_mouse_x - g_mouse_x0, g_win_y0 + g_mouse_y - g_mouse_y0, , , "ahk_id " k_ID
- }
-
 
 设置所有按钮透明度(*) {
     global _key
