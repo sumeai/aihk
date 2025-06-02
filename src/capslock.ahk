@@ -88,7 +88,7 @@ CapsLock Up::
     if (pressDuration > longPressCapsThreshold)
     {
         isSingleClickCaps := false
-
+  
         ; 切换为大写状态
         SetCapsLockState "On"
 
