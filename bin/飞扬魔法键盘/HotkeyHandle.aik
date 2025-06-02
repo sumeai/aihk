@@ -2,9 +2,37 @@
 ; AddHotkeyDesc("AppsKey", "显示或隐藏飞扬键盘")
 AppsKey::AppsKeyHandle()
 ; *~AppsKey up::Return
+<<<<<<< HEAD
 
 
 
+=======
+
+AddHotkeyDesc("AppsKey & Alt", "AppsKey & Alt ==> 显示或隐藏飞扬键盘")
+AppsKey & Alt:: 显示或隐藏屏幕键盘() 
+>!AppsKey:: 显示或隐藏屏幕键盘() 
+
+AddHotkeyDesc(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
+>^Alt:: 显示或隐藏屏幕键盘() 
+
+;; Alt+capslock 切换到最近键盘
+AddHotkeyDesc(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
+>^!Space:: 切换到最近键盘()
+AddHotkeyDesc("!CapsLock::", "Alt+capslock ==> 切换到最近键盘")
+!CapsLock:: 切换到最近键盘()
+AddHotkeyDesc("CapsLock & Tab::", "切换到最近键盘")
+CapsLock & Tab:: 切换到最近键盘()
+
+;; 查看所有的快捷键
+AddHotkeyDesc(">!^/", "右Alt+Ctrl+/ ==> 查看所有的快捷键")
+>!^/:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+AddHotkeyDesc("CapsLock & /", "查看所有的快捷键")
+CapsLock & /:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+
+
+
+
+>>>>>>> ff743b805c9bf5e61f4549d36d4d0ea29d03ac95
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 以下快捷键在suspend状态下依然生效
 #SuspendExempt true
@@ -18,6 +46,7 @@ AppsKey & RShift:: 勾选SettingCheckBox()
 
 ;; AppsKey & esc 退出 飞扬魔法键盘
 AddHotkeyDesc(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
+<<<<<<< HEAD
 AddHotkeyDesc("AppsKey & esc", "退出飞扬魔法键盘")
 AddHotkeyDesc("Capslock & esc", "退出飞扬魔法键盘")
 >^!esc:: 退出()
@@ -33,7 +62,25 @@ AddHotkeyDesc("AppsKey & Space", "Suspend 暂停快捷键")
 Capslock & Space::  Suspend
 AppsKey & Space::  Suspend
 
+=======
+>^!esc:: 退出()
+AddHotkeyDesc("AppsKey & esc", "退出飞扬魔法键盘")
+AppsKey & esc:: 退出()
+AddHotkeyDesc("Capslock & esc", "退出飞扬魔法键盘")
+capslock & esc:: 退出()
 
+
+;; 激活当前键盘
+AddHotkeyDesc("^CapsLock", "Ctrl+capslock ==> 激活当前键盘")
+^CapsLock:: WinActivate("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
+
+>>>>>>> ff743b805c9bf5e61f4549d36d4d0ea29d03ac95
+
+;; 挂起
+AddHotkeyDesc("Capslock & Space", "Suspend 暂停快捷键")
+AddHotkeyDesc("AppsKey & Space", "Suspend 暂停快捷键")
+Capslock & Space::  Suspend
+AppsKey & Space::  Suspend
 
 
 #HotIf WinActive("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
@@ -43,6 +90,11 @@ esc:: 退出()
 
 #SuspendExempt false
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+∑设置热键()
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
