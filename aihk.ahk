@@ -52,7 +52,7 @@ TaskExists(taskName) {
 CreateTaskIfNotExists(taskName, scriptPath) {
     if TaskExists(taskName) {
         MsgBox "任务已存在: " taskName
-        return
+        return    
     }
 
     cmd := Format(

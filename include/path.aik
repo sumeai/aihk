@@ -20,16 +20,22 @@ get_script_root() {
     global g_root
     g_root := A_ScriptDir
     Loop {
-        if !InStr(g_root, "\")
+        if !InStr(g_root, "\"){
+            ; MsgBox "11 g_root: " g_root
             break ; 路径不对
+        } else {
+            ; MsgBox "22 g_root: " g_root
+        }
+
+
         if FileExist(g_root "\aihk.ahk")
             if FileExist(g_root "\bin")
                 if FileExist(g_root "\SubUI")
-                    if FileExist(g_root "\lib")
-                        return g_root
+                    return g_root
+
         SplitPath(g_root, , &g_root) ; 向上一级
     }
-    return false
+    return ""
 }
 
 get_root() {

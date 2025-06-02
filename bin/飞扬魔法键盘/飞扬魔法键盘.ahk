@@ -15,16 +15,19 @@
  * - 实现飞扬魔法键盘的基本功能
  */
 
+#SingleInstance force
 
 
 g_version := "V2.00"
 g_bRightMenu := ""
 g_root := ""
 
+g_title := "飞扬魔法键盘"
+g_winTitle := g_title " ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe"
+
 g_ImagesDir := A_ScriptDir "\images"
 g_HotkeyList := []
 
-#SingleInstance force
 
 
 #Include "../../"
@@ -419,8 +422,12 @@ return
      {
         ;  保存当前窗口位置()
         var_root := ∑获取根目录()
+        if var_root = "" or var_root = 0 {
+            var_file := "飞扬魔法键盘.ahk"
+        } else {
         ; MsgBox "var_root = " var_root ",  keyboard_ = " keyboard_
-         var_file := var_root "\bin\飞扬魔法键盘\飞扬魔法键盘.ahk"
+            var_file := var_root "\bin\飞扬魔法键盘\飞扬魔法键盘.ahk"
+        }
          run_ahk(var_file, keyboard_)
          return true
      } else {

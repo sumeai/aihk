@@ -3,5 +3,7 @@
 *.log
 *.cjp
 *.*~
+temp.ini
+aihk_run.ahk
 /user/*
 !/user/default

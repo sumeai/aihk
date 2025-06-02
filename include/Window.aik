@@ -78,46 +78,314 @@ SetWin_Top_autoTransparent(var_title, var_text, bool_top := true, var_Transparen
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;   移动活动窗口
-moveactivewindow(var_dx, var_dy)
-{
-	KeyWait("a", "D L T0.3")
-	WinGetPos(&var_x, &var_y, &var_width, &var_height, "A")
-	var_x += var_dx
-	var_y += var_dy
-	WinMove("A", , var_x, var_y)
+; 函数：移动窗口
+; 参数：winTitle - 窗口标题或标识符
+;       dx - X轴移动距离（正数向右，负数向左）
+;       dy - Y轴移动距离（正数向下，负数向上）
+WinMoveDxDy(winTitle, dx, dy) {
+    ; 检查窗口是否存在
+    if !WinExist(winTitle) {
+        talkshow("移动窗口错误：找不到标题为 '" winTitle "' 的窗口！")
+        return false
+    }
+    
+    ; 获取窗口句柄
+    hwnd := WinExist(winTitle)
+    
+    ; 获取当前窗口位置和大小
+    WinGetPos &x, &y, &width, &height, "ahk_id " hwnd
+    
+    ; 计算新位置
+    newX := x + dx
+    newY := y + dy
+    
+    ; 移动窗口
+    WinMove newX, newY, width, height, "ahk_id " hwnd
+    
+    return true
 }
 
 
-; The following function centers the specified window on the screen:
-CenterWindow(WinTitle := "A")
-{
-	Width := Height := 0
-	WinGetPos(,, &Width, &Height, WinTitle)
-	x := (A_ScreenWidth // 2) - (Width // 2)
-	y := (A_ScreenHeight // 2) - (Height // 2)
-	WinMove(WinTitle, , x, y)
+
+;; WinMoveLeft - 将指定窗口移动到当前显示器的左侧
+WinMoveLeft(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+	; 获取窗口所在点的屏幕（使用窗口左上角位置）
+	monitor := MonitorFind(x, y)
+
+	; 获取该显示器的工作区域（排除任务栏等）
+	if !MonitorGetWorkArea(monitor,  &Left, &Top, &Right, &Bottom) {
+		talkshow "无法获取显示器工作区域"
+		return
+	}
+
+	; 计算新的左侧位置
+	newX := Left
+
+	; 移动窗口
+	WinMove newX,,,, WinTitle
 }
 
-CenterActiveWindow()
-{
-	WinTitle := ""
-	WinGetTitle(&WinTitle, "A")
-	Width := Height := 0
-	WinGetPos(,, &Width, &Height, WinTitle)
-	x := (A_ScreenWidth // 2) - (Width // 2)
-	y := (A_ScreenHeight // 2) - (Height // 2)
-	WinMove(WinTitle, , x, y)
+;; WinMoveRight - 将指定窗口移动到当前显示器的右侧
+WinMoveRight(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+	; 获取窗口所在点的屏幕（使用窗口左上角位置）
+	monitor := MonitorFind(x, y)
+
+	; 获取该显示器的工作区域（排除任务栏等）
+	if !MonitorGetWorkArea(monitor,  &Left, &Top, &Right, &Bottom) {
+		talkshow "无法获取显示器工作区域"
+		return
+	}
+
+	; 计算新的右侧位置
+	newX := Right - w
+
+	; 移动窗口
+	WinMove newX,,,, WinTitle
 }
+
+
+;; WinMoveTop - 将指定窗口移动到当前显示器的顶部
+WinMoveTop(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+	; 获取窗口所在点的屏幕（使用窗口左上角位置）
+	monitor := MonitorFind(x, y)
+
+	; 获取该显示器的工作区域（排除任务栏等）
+	if !MonitorGetWorkArea(monitor,  &Left, &Top, &Right, &Bottom) {
+		talkshow "无法获取显示器工作区域"
+		return
+	}
+
+	; 计算新的顶部位置
+	newY := Top
+
+	; 移动窗口
+	WinMove , newY,,, WinTitle
+}
+
+;; WinMoveBottom - 将指定窗口移动到当前显示器的底部
+WinMoveBottom(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+	; 获取窗口所在点的屏幕（使用窗口左上角位置）
+	monitor := MonitorFind(x, y)
+
+	; 获取该显示器的工作区域（排除任务栏等）
+	if !MonitorGetWorkArea(monitor,  &Left, &Top, &Right, &Bottom) {
+		talkshow "无法获取显示器工作区域"
+		return
+	}
+
+	; 计算新的底部位置
+	newY := Bottom - h
+
+	; 移动窗口
+	WinMove , newY,,, WinTitle
+}
+
+WinMoveTopLeft(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+	; 获取窗口所在点的屏幕（使用窗口左上角位置）
+	monitor := MonitorFind(x, y)
+
+	; 获取该显示器的工作区域（排除任务栏等）
+	if !MonitorGetWorkArea(monitor,  &Left, &Top, &Right, &Bottom) {
+		talkshow "无法获取显示器工作区域"
+		return
+	}
+
+	; 计算新的顶部位置
+	newY := Top
+	newX := Left
+
+	; 移动窗口
+	WinMove newX, newY,,, WinTitle
+}
+
+WinGetArea(WinTitle := "A", &x := 0, &y := 0, &w := 0, &h := 0) {
+	if !WinExist(WinTitle) {
+		; talkshow "窗口不存在: " WinTitle
+		return false
+	}
+	WinGetPos &x, &y, &w, &h, WinTitle
+	if (x = "" or x = 0 
+	and y = "" or y = 0 
+	and w = "" or w = 0 
+	and h = "" or h = 0) {
+		return false
+	}
+	
+	return true
+}
+
+WinMoveTopRight(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+	; 获取窗口所在点的屏幕（使用窗口左上角位置）
+	monitor := MonitorFind(x, y)
+
+	; 获取该显示器的工作区域（排除任务栏等）
+	if !MonitorGetWorkArea(monitor, &Left, &Top, &Right, &Bottom) {
+		talkshow "无法获取显示器工作区域"
+		return
+	}
+
+	; 计算新的顶部位置
+	newY := Top
+	newX := Right - w
+
+	; 移动窗口
+	WinMove newX, newY,,, WinTitle
+}
+
+WinMoveBottomLeft(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+	; 获取窗口所在点的屏幕（使用窗口左上角位置）
+	monitor := MonitorFind(x, y)
+
+	; 获取该显示器的工作区域（排除任务栏等）
+	if !MonitorGetWorkArea(monitor,  &Left, &Top, &Right, &Bottom) {
+		talkshow "无法获取显示器工作区域"
+		return
+	}
+
+	; 计算新的底部位置
+	newY := Bottom - h
+	newX := Left
+
+	; 移动窗口
+	WinMove newX, newY,,, WinTitle
+}
+
+WinMoveBottomRight(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+	; 获取窗口所在点的屏幕（使用窗口左上角位置）
+	monitor := MonitorFind(x, y)
+
+	; 获取该显示器的工作区域（排除任务栏等）
+	if !MonitorGetWorkArea(monitor, &Left, &Top, &Right, &Bottom) {
+		talkshow "无法获取显示器工作区域"
+		return
+	}
+
+	; 计算新的底部位置
+	newY := Bottom - h
+	newX := Right - w
+
+	; 移动窗口
+	WinMove newX, newY,,, WinTitle
+}
+
+;; WinMoveCenter - 将指定窗口移动到当前显示器的中心
+WinMoveCenter(WinTitle := "A") {
+	; 获取窗口位置和大小
+	if !WinGetArea(WinTitle, &x, &y, &w, &h) {
+		talkshow "无法获取窗口位置: " WinTitle
+		return false
+	}
+
+    ; 获取窗口所在点的屏幕（使用窗口左上角位置）
+    monitor := MonitorFind(x, y)
+
+    ; 获取该显示器的工作区域（排除任务栏等）
+    if !MonitorGetWorkArea(monitor,  &Left, &Top, &Right, &Bottom) {
+        talkshow "无法获取显示器工作区域"
+        return
+    }
+
+    ; 计算新的居中位置
+    newX := Left + (Right - Left - w) // 2
+    newY := Top + (Bottom - Top - h) // 2
+
+    ; 移动窗口
+    WinMove newX, newY,,, WinTitle
+}
+
+;; MonitorFind - 获取指定点所在的显示器索引(1-based)
+MonitorFind(x, y) {
+    ; 获取显示器数量
+    MonitorCount := SysGet(80)
+
+    loop MonitorCount {
+		ActualN := MonitorGetWorkArea(A_Index, &Left, &Top, &Right, &Bottom)
+
+		; 检查点是否在当前显示器的范围内
+        if (x >= left && x < right && y >= top && y < bottom) {
+            return ActualN  
+        }
+    }
+
+    ; 如果点不在任何一个工作区中，返回 0
+    return 0
+}
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 更改当前窗口的大小
-ResetActiveWindowRect(newwidth, newheight)
-{
-	WinRestore("A")
-	WinGetPos(&var_x, &var_y, &var_width, &var_height, "A")
-	Sleep(100)
-	WinMove("A", , var_x, var_y, newwidth, newheight)
+;; 设置窗口大小
+WinSetSize(WinTitle := "A", NewWidth := 0, NewHeight := 0) {
+    ; 获取当前窗口位置
+    if !WinGetPos(&x, &y, &w, &h, WinTitle) {
+        talkshow "无法获取窗口位置: " WinTitle
+        return false
+    }
+
+	if (NewWidth = "" || NewWidth <= 0)
+	{
+		NewWidth := w
+	}
+
+	if (NewHeight = "" || NewHeight <= 0)
+	{
+		NewHeight := h
+	}
+
+    ; 移动并设置新大小
+    return WinMove(x, y, NewWidth, NewHeight, WinTitle)
 }
+
+
 
 ;;------窗口最大化最小化-------------------------------
 IsWinMax(WinTitle := "A", WinText := "")
@@ -145,6 +413,7 @@ GetWinAlpha(WinTitle := "A", WinText := "")
 		var_alpha := 255
 	return var_alpha
 }
+
 ∑最大化窗口(WinTitle := "A", WinText := "")
 {
 	WinMaximize(WinTitle, WinText)

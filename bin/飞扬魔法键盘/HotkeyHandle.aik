@@ -3,28 +3,6 @@
 AppsKey::AppsKeyHandle()
 ; *~AppsKey up::Return
 
-AddHotkeyDesc("AppsKey & Alt", "AppsKey & Alt ==> 显示或隐藏飞扬键盘")
-AppsKey & Alt:: 显示或隐藏屏幕键盘() 
->!AppsKey:: 显示或隐藏屏幕键盘() 
-
-AddHotkeyDesc(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
->^Alt:: 显示或隐藏屏幕键盘() 
-
-;; Alt+capslock 切换到最近键盘
-AddHotkeyDesc(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
->^!Space:: 切换到最近键盘()
-AddHotkeyDesc("!CapsLock::", "Alt+capslock ==> 切换到最近键盘")
-!CapsLock:: 切换到最近键盘()
-AddHotkeyDesc("CapsLock & Tab::", "切换到最近键盘")
-CapsLock & Tab:: 切换到最近键盘()
-
-;; 查看所有的快捷键
-AddHotkeyDesc(">!^/", "右Alt+Ctrl+/ ==> 查看所有的快捷键")
->!^/:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
-AddHotkeyDesc("CapsLock & /", "查看所有的快捷键")
-CapsLock & /:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
-
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,23 +11,20 @@ CapsLock & /:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
 
 ;; 使用 AppsKey & RShift 切换编辑状态
 AddHotkeyDesc(">^!RShift", "右Ctrl+Alt+Rshift ==> 勾选SettingCheckBox")
->^!RShift:: 勾选SettingCheckBox()
 AddHotkeyDesc("AppsKey & Rshift", "勾选SettingCheckBox")
+>^!RShift:: 勾选SettingCheckBox()
 AppsKey & RShift:: 勾选SettingCheckBox()
 
 
 ;; AppsKey & esc 退出 飞扬魔法键盘
 AddHotkeyDesc(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
->^!esc:: 退出()
 AddHotkeyDesc("AppsKey & esc", "退出飞扬魔法键盘")
-AppsKey & esc:: 退出()
 AddHotkeyDesc("Capslock & esc", "退出飞扬魔法键盘")
+>^!esc:: 退出()
+AppsKey & esc:: 退出()
 capslock & esc:: 退出()
 
 
-;; 激活当前键盘
-AddHotkeyDesc("^CapsLock", "Ctrl+capslock ==> 激活当前键盘")
-^CapsLock:: WinActivate("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
 
 
 ;; 挂起
@@ -59,12 +34,73 @@ Capslock & Space::  Suspend
 AppsKey & Space::  Suspend
 
 
+
+
 #HotIf WinActive("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
 AddHotkeyDesc("esc", "退出APP")
 esc:: 退出()
 #HotIf 
 
 #SuspendExempt false
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+AddHotkeyDesc("AppsKey & Alt", "AppsKey & Alt ==> 显示或隐藏飞扬键盘")
+AddHotkeyDesc(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
+AppsKey & Alt:: 显示或隐藏屏幕键盘() 
+>!AppsKey:: 显示或隐藏屏幕键盘() 
+>^Alt:: 显示或隐藏屏幕键盘() 
+
+;; Alt+capslock 切换到最近键盘
+AddHotkeyDesc(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
+AddHotkeyDesc("!CapsLock", "Alt+capslock ==> 切换到最近键盘")
+AddHotkeyDesc("CapsLock & Tab", "切换到最近键盘")
+>^!Space:: 切换到最近键盘()
+!CapsLock:: 切换到最近键盘()
+CapsLock & Tab:: 切换到最近键盘()
+
+;; 查看所有的快捷键
+AddHotkeyDesc(">!^/", "右Alt+Ctrl+/ ==> 查看飞扬魔法键盘所有的快捷键")
+AddHotkeyDesc(">^<^/", "右Ctrl + 左Ctrl +/ ==> 查看飞扬魔法键盘所有的快捷键")
+AddHotkeyDesc("CapsLock & /", "CapsLock & ? ==> 查看飞扬魔法键盘所有的快捷键")
+AddHotkeyDesc("CapsLock & F1", "CapsLock & F1 ==> 查看飞扬魔法键盘所有的快捷键")
+>!^/:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+>^<^/:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+CapsLock & /:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+CapsLock & F1:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+
+
+;; 激活当前键盘
+AddHotkeyDesc("^CapsLock", "Ctrl+capslock ==> 激活当前键盘")
+AddHotkeyDesc("CapsLock & ``", "CapsLock+`` ==> 激活当前键盘")
+^CapsLock:: WinActivate(g_winTitle)
+CapsLock & `::  WinActivate(g_winTitle)
+
+
+
+
+CapsLock & \::  ;; test
+{
+    lastTitle := ""
+    ; lastTitle := WinGetTitle()
+    aTitle := WinGetTitle("A")
+    MsgBox "上一个窗口标题: " lastTitle "`n A窗口标题: " aTitle
+}
+
+
+CapsLock & Left:: WinMoveDxDy(g_winTitle, -100, 0)
+CapsLock & Right:: WinMoveDxDy(g_winTitle, 100, 0)
+CapsLock & Up:: WinMoveDxDy(g_winTitle, 0, -100)
+CapsLock & Down:: WinMoveDxDy(g_winTitle, 0, 100)
+
+#CapsLock & L:: WinMoveLeft(g_winTitle)
+#CapsLock & R:: WinMoveRight(g_winTitle)
+#CapsLock & T:: WinMoveTop(g_winTitle)
+#CapsLock & B:: WinMoveBottom(g_winTitle)
+
+CapsLock & c:: WinMoveCenter(g_winTitle)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
