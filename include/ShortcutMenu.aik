@@ -420,7 +420,7 @@ CreateMenu(menu_, inimem_)
 【移动当前窗口到屏幕中央】(*)
 {
     Sleep 100
-    CenterWindow("A")
+    WinMoveCenter("A")
     return
 }
 

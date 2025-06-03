@@ -8,5 +8,7 @@ test.ahk
 test.py
 test.txt
 Thumbs.db
+temp.ini
+aihk_run.ahk
 /user/*
 !/user/default

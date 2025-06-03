@@ -46,9 +46,11 @@ AddHotkeyDesc("+Pause", "Alt+Pause ==> Suspend挂起热键")
 #Hotif NOT WinExist("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
 AddHotkeyDesc("*Appskey", "启动飞扬魔法键盘")
 AddHotkeyDesc("!CapsLock", "Alt+CapsLock ==> 启动飞扬魔法键盘")
+AddHotkeyDesc("Capslock & Space", "启动飞扬魔法键盘")
 AddHotkeyDesc("Pause & ScrollLock", "启动飞扬魔法键盘")
 Pause & ScrollLock::
 !CapsLock::
+Capslock & Space::
 appskey::
 {
     filepath := A_scriptDir "\bin\飞扬魔法键盘\飞扬魔法键盘.ahk"
@@ -56,6 +58,15 @@ appskey::
     ; msgbox "path::" var_temp
     run filepath
     return
+}
+
+;; 显示当前定义的Hotkey和HotString
+AddHotkeyDesc("Capslock & ?", "显示AiHK所有的热键")
+AddHotkeyDesc("右Ctrl + 左Ctrl + ?", "显示AiHK所有的热键")
+Capslock & /::
+>^<^/::
+{
+    ShowHotkeyList("飞扬AiHK所有热键：")
 }
 
 ; *~AppsKey up::Return
