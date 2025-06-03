@@ -3,5 +3,10 @@
 *.log
 *.cjp
 *.*~
+*.aimy
+test.ahk
+test.py
+test.txt
+Thumbs.db
 /user/*
 !/user/default
