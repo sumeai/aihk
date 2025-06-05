@@ -28,6 +28,10 @@ AddHotkeyDesc(":?*:cn;::", "输入cn; ==> 切换中文输入法")
 ::;cn::
 :?*:cn;::
 {
+    ;; 先切换为英文
+    en_input()
+    
+    ;; 再切换为中文
     ToolTip "中文"
     cn_input()
     Sleep 1000
