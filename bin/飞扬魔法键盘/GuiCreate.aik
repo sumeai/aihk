@@ -60,6 +60,7 @@ myGui.BackColor := TransColor
 myGui.TransColor := TransColor
 
 _key := Map()               ;; 存储所有的按钮对象
+_ctrlInfo := Map()          ;; 存储所有的按钮对象的初始化信息
 _keyNameArray := Array()    ;; 存储所有的按钮对象的Text
 
 ; 添加按钮
@@ -280,7 +281,7 @@ _keyClickArray2 := [
 ]
 
 for index, value in _keyClickArray {
-    _key[value].OnEvent("Click", ClickButtonHandle)
+     _key[value].OnEvent("Click", ClickButtonHandle)
 
      cmdstr := FindFromIniMem(g_iniContent, g_keyBoard_name, value, "")
      if cmdstr != ""
@@ -300,17 +301,26 @@ for index, value in _keyClickArray2 {
 ; _GroupBox.Visible := false
 
 
+
+
 ;; 设置窗口的属性
 WinSetAlwaysOnTop(true, "ahk_id " k_ID)
 WinSetExStyle("+0x08000000", "ahk_id " k_ID) ; WS_EX_NOACTIVATE
 WinSetTransColor(TransColor " 200", "ahk_id " k_ID)
 
 
+;; 获取所有控件的初始化信息
 ; 设置所有按钮透明度()
-; for key, btn in _key {
-;     btnHwnd := btn.Hwnd
-;     WinSetTransparent(76, "ahk_id " btnHwnd)
-; }
+for key, btn in _key {
+    ; WinGetTransparent("ahk_id " btn.Hwnd)
+
+    if not _ctrlInfo.Has(key) {
+        _ctrlInfo[key] := GetCtrlProps(btn)
+    }
+
+    ; WinSetTransparent(76, "ahk_id " btnHwnd)
+}
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 移动窗口位置（到上次关闭时的位置或默认位置）

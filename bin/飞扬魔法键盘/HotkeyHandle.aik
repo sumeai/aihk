@@ -1,5 +1,5 @@
 
-; AddHotkeyDesc("AppsKey", "显示或隐藏飞扬键盘")
+; ______("AppsKey", "显示或隐藏飞扬键盘")
 AppsKey::AppsKeyHandle()
 ; *~AppsKey up::Return
 
@@ -10,18 +10,13 @@ AppsKey::AppsKeyHandle()
 ;; 以下快捷键在suspend状态下依然生效
 #SuspendExempt true
 
-;; 使用 AppsKey & RShift 切换编辑状态
-AddHotkeyDesc(">^!RShift", "右Ctrl+Alt+Rshift ==> 勾选SettingCheckBox")
-AddHotkeyDesc("AppsKey & Rshift", "勾选SettingCheckBox")
->^!RShift:: 勾选SettingCheckBox()
-AppsKey & RShift:: 勾选SettingCheckBox()
-
+____________("以下Hotkey在suspend状态下依然生效")
 
 ;; AppsKey & esc 退出 飞扬魔法键盘
-AddHotkeyDesc(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
-AddHotkeyDesc("AppsKey & esc", "退出飞扬魔法键盘")
-AddHotkeyDesc("Capslock & esc", "退出飞扬魔法键盘")
-AddHotkeyDesc(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
+______(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
+______("AppsKey & esc", "退出飞扬魔法键盘")
+______("Capslock & esc", "退出飞扬魔法键盘")
+______(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
 >^!esc:: 退出()
 AppsKey & esc:: 退出()
 capslock & esc:: 退出()
@@ -30,8 +25,8 @@ capslock & esc:: 退出()
 
 
 ;; 挂起
-AddHotkeyDesc("Capslock & Space", "Suspend 暂停快捷键")
-AddHotkeyDesc("AppsKey & Space", "Suspend 暂停快捷键")
+______("Capslock & Space", "Suspend 暂停快捷键")
+______("AppsKey & Space", "Suspend 暂停快捷键")
 Capslock & Space::  Suspend
 AppsKey & Space::  Suspend
 
@@ -39,59 +34,79 @@ AppsKey & Space::  Suspend
 
 
 #HotIf WinActive("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
-AddHotkeyDesc("esc", "退出APP")
+______("esc", "退出APP")
 esc:: 退出()
 #HotIf 
 
+____END____("suspend状态结束")
 #SuspendExempt false
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-AddHotkeyDesc("AppsKey & Alt", "AppsKey & Alt ==> 显示或隐藏飞扬键盘")
-AddHotkeyDesc(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
+______("AppsKey & Alt", "AppsKey & Alt ==> 显示或隐藏飞扬键盘")
+______(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
 AppsKey & Alt:: 显示或隐藏屏幕键盘() 
 >!AppsKey:: 显示或隐藏屏幕键盘() 
 >^Alt:: 显示或隐藏屏幕键盘() 
 
+____________("切换键盘")
 ;; Alt+capslock 切换到最近键盘
-AddHotkeyDesc(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
-AddHotkeyDesc("!CapsLock", "Alt+capslock ==> 切换到最近键盘")
-AddHotkeyDesc("CapsLock & Tab", "切换到最近键盘")
+______(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
+______("!CapsLock", "Alt+capslock ==> 切换到最近键盘")
+______("CapsLock & Tab", "切换到最近键盘")
 >^!Space:: 切换到最近键盘()
 !CapsLock:: 切换到最近键盘()
 CapsLock & Tab:: 切换到最近键盘()
 
 ;; 查看所有的快捷键
-AddHotkeyDesc(">!^/", "右Alt+Ctrl+/ ==> 查看飞扬魔法键盘所有的快捷键")
-AddHotkeyDesc(">^<^/", "右Ctrl + 左Ctrl +/ ==> 查看飞扬魔法键盘所有的快捷键")
-AddHotkeyDesc("CapsLock & /", "CapsLock & ? ==> 查看飞扬魔法键盘所有的快捷键")
-AddHotkeyDesc("CapsLock & F1", "CapsLock & F1 ==> 查看飞扬魔法键盘所有的快捷键")
->!^/:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
->^<^/:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
-CapsLock & /:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
-CapsLock & F1:: ShowHotkeyList("飞扬魔法键盘所有热键汇总！")
+____________("查看快捷键")
+______(">!^/", "右Alt+Ctrl+/ ==> 查看飞扬魔法键盘所有的快捷键")
+______(">^<^/", "右Ctrl + 左Ctrl +/ ==> 查看飞扬魔法键盘所有的快捷键")
+______("CapsLock & /", "CapsLock & ? ==> 查看飞扬魔法键盘所有的快捷键")
+______("CapsLock & F1", "CapsLock & F1 ==> 查看飞扬魔法键盘所有的快捷键")
+var_text:= "飞扬魔法键盘所有热键汇总！ (按ESC关闭)"
+>!^/:: ShowHotkeyList(var_text)
+>^<^/:: ShowHotkeyList(var_text)
+CapsLock & /:: ShowHotkeyList(var_text)
+CapsLock & F1:: ShowHotkeyList(var_text)
 
 
 ;; 激活当前键盘
-AddHotkeyDesc("^CapsLock", "Ctrl+capslock ==> 激活当前键盘")
-AddHotkeyDesc("CapsLock & ``", "CapsLock+`` ==> 激活当前键盘")
+____________("激活当前键盘")
+______("^CapsLock", "Ctrl+capslock ==> 激活当前键盘")
+______("CapsLock & ``", "CapsLock+`` ==> 激活当前键盘")
 ^CapsLock:: WinActivate(g_winTitle)
 CapsLock & `::  WinActivate(g_winTitle)
 
 
 
-
 CapsLock & \::  ;; test
 {
-    lastTitle := ""
-    ; lastTitle := WinGetTitle()
-    aTitle := WinGetTitle("A")
-    MsgBox "上一个窗口标题: " lastTitle "`n A窗口标题: " aTitle
+    ; lastTitle := ""
+    ; ; lastTitle := WinGetTitle()
+    ; aTitle := WinGetTitle("A")
+    ; MsgBox "上一个窗口标题: " lastTitle "`n A窗口标题: " aTitle
+
+
+    saveCtrlProps(_ctrlInfo)
+    MsgBox "saveCtrlProps() !!"
 }
 
+;; 使用 AppsKey & RShift 切换编辑状态
+____________("勾选SettingCheckBox")
+______(">^!RShift", "右Ctrl+Alt+Rshift ==> 勾选SettingCheckBox")
+______("AppsKey & Rshift", "勾选SettingCheckBox")
+>^!RShift:: 勾选SettingCheckBox()
+AppsKey & RShift:: 勾选SettingCheckBox()
 
+
+____________("移动飞扬魔法键盘窗口")
+
+______("CapsLock & Left", "CapsLock + ← ==> 飞扬魔法键盘向左移动（按住Alt到屏幕左侧）")
+______("CapsLock & Numpad4", "CapsLock + 数字键4 ==> 飞扬魔法键盘向左移动（按住Alt到屏幕左侧）")
 CapsLock & Left:: 
+CapsLock & Numpad4:: 
 {
     if GetKeyState("alt", "P") {
         WinMoveLeft(g_winTitle)
@@ -99,7 +114,11 @@ CapsLock & Left::
         WinMoveDxDy(g_winTitle, -100, 0)
     }
 }
+
+______("CapsLock & Right", "CapsLock + → ==> 飞扬魔法键盘向右移动（按住Alt到屏幕右侧）")
+______("CapsLock & Numpad6", "CapsLock + 数字键6 ==> 飞扬魔法键盘向右移动（按住Alt到屏幕右侧）")
 CapsLock & Right:: 
+CapsLock & Numpad6:: 
 {
     if GetKeyState("alt", "P") {
         WinMoveRight(g_winTitle)
@@ -107,7 +126,12 @@ CapsLock & Right::
         WinMoveDxDy(g_winTitle, 100, 0)
     }
 }
+
+
+______("CapsLock & Up", "CapsLock + ↑ ==> 飞扬魔法键盘↑移动（按住Alt到屏幕顶部）")
+______("CapsLock & Numpad8", "CapsLock + 数字键8 ==> 飞扬魔法键盘向上移动（按住Alt到屏幕顶部）")
 CapsLock & Up:: 
+CapsLock & Numpad8:: 
 {
     if GetKeyState("alt", "P") {
         WinMoveTop(g_winTitle)
@@ -115,7 +139,11 @@ CapsLock & Up::
         WinMoveDxDy(g_winTitle, 0, -100)
     }
 }
+
+______("CapsLock & Down", "CapsLock + ↓ ==> 飞扬魔法键盘↓移动（按住Alt到屏幕底部）")
+______("CapsLock & Numpad2", "CapsLock + 数字键2 ==> 飞扬魔法键盘向下移动（按住Alt到屏幕底部）")
 CapsLock & Down::
+CapsLock & Numpad2::
 {
     if GetKeyState("alt", "P") {
         WinMoveBottom(g_winTitle)
@@ -124,15 +152,58 @@ CapsLock & Down::
     }
 }
 
-; #CapsLock & L:: WinMoveLeft(g_winTitle)
-; #CapsLock & R:: WinMoveRight(g_winTitle)
-; #CapsLock & T:: WinMoveTop(g_winTitle)
-; #CapsLock & B:: WinMoveBottom(g_winTitle)
 
-CapsLock & c:: WinMoveCenter(g_winTitle)
+______("CapsLock & Numpad5", "CapsLock + 数字键5 ==> 飞扬魔法键盘移动到屏幕中央↔")
+CapsLock & Home:: WinMoveCenter(g_winTitle)
+CapsLock & Numpad5:: WinMoveCenter(g_winTitle)
+
+
+
+______("CapsLock & Numpad7", "CapsLock + 数字键7 ==> 飞扬魔法键盘向↖左上移动（按住Alt到屏幕左上角）")
+CapsLock & Numpad7:: 
+{
+    if GetKeyState("alt", "P") {
+        WinMoveTopLeft(g_winTitle)
+    } else {
+        WinMoveDxDy(g_winTitle, -100, -100)
+    }
+}
+
+______("CapsLock & Numpad9", "CapsLock + 数字键9 ==> 飞扬魔法键盘向↗右上移动（按住Alt到屏幕右上角）")
+CapsLock & Numpad9:: 
+{
+    if GetKeyState("alt", "P") {
+        WinMoveTopRight(g_winTitle)
+    } else {
+        WinMoveDxDy(g_winTitle, 100, -100)
+    }
+}
+
+
+______("CapsLock & Numpad1", "CapsLock + 数字键1 ==> 飞扬魔法键盘向↙移动（按住Alt到屏幕左下角）")
+CapsLock & Numpad1:: 
+{
+    if GetKeyState("alt", "P") {
+        WinMoveBottomLeft(g_winTitle)
+    } else {
+        WinMoveDxDy(g_winTitle, -100, 100)
+    }
+}
+
+______("CapsLock & Numpad3", "CapsLock + 数字键2 ==> 飞扬魔法键盘向↘移动（按住Alt到屏幕右下）")
+CapsLock & Numpad3::
+{
+    if GetKeyState("alt", "P") {
+        WinMoveBottomRight(g_winTitle)
+    } else {
+        WinMoveDxDy(g_winTitle, 100, 100)
+    }
+}
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+____________("动态生成的Hotkey")
 
 ∑设置热键()
 

@@ -266,3 +266,32 @@ FocusButtonHandle(ctrl, info){
      MouseGetPos &g_mouse_x, &g_mouse_y
      WinMove g_win_x0 + g_mouse_x - g_mouse_x0, g_win_y0 + g_mouse_y - g_mouse_y0, , , "ahk_id " k_ID
  }
+
+
+
+ GetCtrlProps(btn) {
+    global g_winTitle
+
+    if !btn
+        return
+
+    ControlGetPos &OutX, &OutY, &OutWidth, &OutHeight, btn
+    style := ControlGetStyle(btn.Hwnd, g_winTitle)
+
+    property := {
+        x : OutX,
+        y : OutY,
+        w : OutWidth,
+        h : OutHeight,
+        isVisible : btn.Visible,
+        btnText : btn.Text,
+        btnColor : "",
+        btnFont : "",
+        btnFontColor : "",
+        btnFontStyle : style,
+        btnHwnd : btn.Hwnd,
+        btnTrans : 255
+    } 
+
+    return property
+ }

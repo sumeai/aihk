@@ -1,5 +1,6 @@
-; common.aik 定义最基本的函数
+; hotkey_manage.aik 管理Hotkey，定义Hotkey的注册方法、注释说明添加与显示
 ; 作者: 陈建平
+; 日期: 2025-06-5
 
 #Requires AutoHotkey v2.0
 
@@ -11,6 +12,13 @@
 ; g_isInstall_autohotkey := false
 
 ; 封装注册热键 + 描述的方法
+/**
+ * Registers a hotkey and stores it in the global hotkey list.
+ * @param hotkeyStr The hotkey combination (e.g. "^a" for Ctrl+A)
+ * @param funcObj The function object to call when hotkey is pressed
+ * @param description Optional description of the hotkey's purpose
+ * @param Options Hotkey options (default: "On")
+ */
 RegisterHotkey(hotkeyStr, funcObj, description := "", Options := "On") {
     global g_HotkeyList
     Hotkey(hotkeyStr, funcObj, Options)
@@ -18,12 +26,78 @@ RegisterHotkey(hotkeyStr, funcObj, description := "", Options := "On") {
 }
 
 ;; 添加热键的描述
+/**
+ * Adds a hotkey description to the global hotkey list.
+ * @param {string} hotkeyStr - The hotkey combination to add (e.g. "^c").
+ * @param {string} [description=""] - Optional description for the hotkey.
+ */
 AddHotkeyDesc(hotkeyStr, description := "") {
     global g_HotkeyList
     g_HotkeyList.Push({ key: hotkeyStr, desc: description })
 }
 
+/**
+ * Adds a hotkey  description to the global hotkey list
+ * @param {string} hotkeyStr - The hotkey combination to register (e.g. "^a" for Ctrl+A)
+ * @param {string} [description=""] - Optional description of the hotkey's functionality
+ */
+______(hotkeyStr, description := "") {
+    global g_HotkeyList
+    g_HotkeyList.Push({ key: hotkeyStr, desc: description })
+}
+
+/**
+ * Formats and adds a decorative description for hotkeys.
+ * 
+ * @param description The text to be formatted. If empty, creates a divider line.
+ *                    If longer than 50 chars, wraps in brackets without decoration.
+ *                    Otherwise, adds arrows and fills remaining space with dashes.
+ */
+____________(description := "") {
+    var_temp := ""
+    var_len := StrLen(description)
+    if var_len >= 50 {
+        var_temp := "【" description "】"
+    } else if var_len <= 0 {
+        var_temp .= "---------------------------------------------"
+    } else {
+        var_temp .= "【" description "】↓"
+        loop 50 - var_len
+        {
+            var_temp .= "-"
+        }
+    }
+    AddHotkeyDesc("---------------------↓", var_temp)
+}
+
+
+____END____(description := "") {
+    var_temp := ""
+    var_len := StrLen(description)
+    if var_len >= 50 {
+        var_temp := "↑↑" description "↑↑"
+    } else if var_len <= 0 {
+        var_temp .= "============================================="
+    } else {
+        var_temp .= "【" description "】↑"
+        loop 50 - var_len
+        {
+            var_temp .= "="
+        }
+    }
+    AddHotkeyDesc("=====================↑", var_temp)
+}
+
 ; 显示当前已注册的热键和说明
+/**
+ * Displays a list of hotkeys in a ListView window.
+ * 
+ * @param title_ Optional title for the ListView window
+ * @global g_HotkeyList Array containing hotkey definitions
+ * @global tempini_file Temporary INI file path for storing hotkey data
+ * @global ListViewColums Column definitions for the ListView
+ * @global cmdline Command to launch the ListView UI
+ */
 ShowHotkeyList(title_) {
     global g_HotkeyList
 
@@ -45,3 +119,15 @@ ShowHotkeyList(title_) {
     run  cmdline
 }
 
+
+
+saveCtrlProps(_ctrlInfo) {
+    tempini_file := A_ScriptDir "/ctrlinfo.ini"
+
+
+    for key, btn in _ctrlInfo {
+        dataStr := JSON.Dump(btn)
+        IniWrite dataStr, tempini_file, "CtrlProps", key
+    }
+
+}

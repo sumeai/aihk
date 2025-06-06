@@ -74,15 +74,15 @@ ShowDynamicListView(data, columnsArray) {
 
     ;; 如果输入了第二title参数，则增加Text控件显示该参数内容
     if (g_title != ""){
-        myGui.Add("Text", "w600", g_title)
+        myGui.Add("Text", "w800", g_title)
     }
 
     ;; 增加输入框，用来查询过滤ListView的内容
-    IB := myGui.Add("Edit", "w600")
+    IB := myGui.Add("Edit", "w800")
     IB.OnEvent("Change", 输入过滤条件)
 
     ;; 增加ListView控件，显示具体的内容
-    g_LV := myGui.Add("ListView", "w600 r20", g_columns)
+    g_LV := myGui.Add("ListView", "w800 r20", g_columns)
 
     ;; 填充ListView的内容
     RefreshListView("")
