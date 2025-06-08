@@ -295,3 +295,25 @@ FocusButtonHandle(ctrl, info){
 
     return property
  }
+
+
+ CapsLockHandle(ctrl, info){
+
+    SetCapsLockState !GetKeyState("CapsLock", "T")
+    ;; 切换CapsLock状态
+
+    isOn := GetKeyState("CapsLock", "T") 
+    ; MsgBox "CapsLock:" isOn
+
+    if isOn
+    {
+        SetCapsLockState "Off"
+        talkshow("【小写】CapsLock:OFF")
+    }
+    else
+    {
+        SetCapsLockState "On" 
+        talkshow("【大写】CapsLock:ON")
+    }
+
+ }

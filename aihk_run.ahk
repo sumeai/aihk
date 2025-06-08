@@ -19,21 +19,21 @@ g_HotkeyList := []
 #SuspendExempt true
 
 ;; 退�?
-AddHotkeyDesc("Pause & Esc", "退出AiHK")
+______("Pause & Esc", "退出AiHK")
 Pause & Esc::
 {
     ExitApp
 }
 
 ;; 显示当前定义的Hotkey和HotString
-AddHotkeyDesc("Pause & ?", "显示所有的热键")
+______("Pause & ?", "显示所有的热键")
 Pause & /::
 {
     ShowHotkeyList("飞扬AI司令部所有热键：")
 }
 
 ;; 挂起
-AddHotkeyDesc("+Pause", "Alt+Pause ==> Suspend挂起热键")
+______("+Pause", "Alt+Pause ==> Suspend挂起热键")
 +Pause::
 {
     if (A_IsSuspended) {
@@ -44,10 +44,10 @@ AddHotkeyDesc("+Pause", "Alt+Pause ==> Suspend挂起热键")
 }
 
 #Hotif NOT WinExist("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
-AddHotkeyDesc("*Appskey", "启动飞扬魔法键盘")
-AddHotkeyDesc("!CapsLock", "Alt+CapsLock ==> 启动飞扬魔法键盘")
-AddHotkeyDesc("Capslock & Space", "启动飞扬魔法键盘")
-AddHotkeyDesc("Pause & ScrollLock", "启动飞扬魔法键盘")
+______("*Appskey", "启动飞扬魔法键盘")
+______("!CapsLock", "Alt+CapsLock ==> 启动飞扬魔法键盘")
+______("Capslock & Space", "启动飞扬魔法键盘")
+______("Pause & ScrollLock", "启动飞扬魔法键盘")
 Pause & ScrollLock::
 !CapsLock::
 Capslock & Space::
@@ -61,8 +61,8 @@ appskey::
 }
 
 ;; 显示当前定义的Hotkey和HotString
-AddHotkeyDesc("Capslock & ?", "显示AiHK所有的热键")
-AddHotkeyDesc("右Ctrl + 左Ctrl + ?", "显示AiHK所有的热键")
+______("Capslock & ?", "显示AiHK所有的热键")
+______("右Ctrl + 左Ctrl + ?", "显示AiHK所有的热键")
 Capslock & /::
 >^<^/::
 {
@@ -80,10 +80,22 @@ Capslock & /::
 #SuspendExempt false
 
 
-AddHotkeyDesc("!Pause", "Alt+Pause ==> 重启启动AiHK")
-!Pause:: reload
+______("!Pause", "Alt+Pause ==> 重启启动AiHK")
+______("::;reload;::", "输入;reload; ==> 重启启动AiHK")
+::;reload;:: 
+!Pause:: 
+{
+    talkshow("重启启动AiHK")
+    reload
+}
 
-AddHotkeyDesc("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内�?") 
+::;exitaihk;::
+{
+    talkshow("退出AiHK")
+    ExitApp
+}
+
+______("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内�?") 
 #Pause:: 
 {
     IB := InputBox("临时运行以下AHK脚本", "运行AHK脚本", "w600 h120", A_Clipboard)
@@ -106,14 +118,14 @@ AddHotkeyDesc("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内�?")
 }
 
 ;:*:ahkhelp2;::run 'https://www.autohotkey.com/docs/v2/index.htm'
-AddHotkeyDesc("::;ahkhelp::", "打开AutoHotkey帮助文档")
+______("::;ahkhelp::", "打开AutoHotkey帮助文档")
 ::;ahkhelp::
 :*:ahkhelp;::
 {
     run StrReplace(a_ahkpath, "64.exe", ".chm")
 }
 
-AddHotkeyDesc("::;ahkspy::", "打开AutoHotkey Spy 查看窗口信息")
+______("::;ahkspy::", "打开AutoHotkey Spy 查看窗口信息")
 ::;ahkspy::
 :*:ahkspy;::
 {
@@ -121,13 +133,13 @@ AddHotkeyDesc("::;ahkspy::", "打开AutoHotkey Spy 查看窗口信息")
     run StrReplace(dir, "v2", "WindowSpy.ahk")
 }
 
-AddHotkeyDesc("::;ahkroot::", "打开 AiHK 根文件夹")
+______("::;ahkroot::", "打开 AiHK 根文件夹")
 ::;ahkroot::
 {
     run A_scriptDir
 }
 
-AddHotkeyDesc("::;ahksrc::", "打开 AiHK/src 文件�?" )
+______("::;ahksrc::", "打开 AiHK/src 文件�?" )
 ::;ahksrc::
 {
     run A_scriptDir . "/src"

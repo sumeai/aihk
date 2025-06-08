@@ -20,7 +20,7 @@ if DirExist("./user") {
             {
                 scriptContent .= FileRead(A_LoopFileFullPath) "`n"
             }
-        }
+        } 
     }
 }
 

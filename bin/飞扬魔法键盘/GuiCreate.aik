@@ -135,7 +135,7 @@ _key["rf"] := myGui.Add("Button", g_Position, "]")
 _key["fxg"] := myGui.Add("Button", g_Position, "\")
 
 _key["capslock"] := myGui.Add("Button", Format("xm y+{} h{} w48", 1, k_KeyHeight), "Caps")
-; _key["capslock"].OnEvent("Click", 弹出右键菜单)
+_key["capslock"].OnEvent("Click", CapsLockHandle)
 
 _key["a"] := myGui.Add("Button", g_Position, "A")
 _key["s"] := myGui.Add("Button", g_Position, "S")
