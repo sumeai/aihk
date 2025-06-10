@@ -1,0 +1,38 @@
+
+;; 创建一个与键盘颜色相同的点，跟随鼠标
+g_keyBoard_color := GetKeyboardColor()
+
+
+; 创建圆形光标GUI
+cursorGui := Gui("+AlwaysOnTop +ToolWindow -Caption +E0x20 +LastFound")
+WinSetTransColor("FFFFFF")  ; 设置白色为透明色
+cursorGui.BackColor := "FFFFFF"  ; 白色背景(将被透明化)
+cursorGui.MarginX := 0, cursorGui.MarginY := 0
+
+; 创建圆形控件
+radius := 20
+circle := cursorGui.Add("Text", "w" radius " h" radius " Center 0xE c" g_keyBoard_color, "●")
+cursorGui.Show("NA x0 y0")  ; 显示窗口
+
+CoordMode "Mouse", "Screen"
+
+; 设置定时器更新位置
+SetTimer(UpdateCursor, 20) 
+
+UpdateCursor() {
+    static lastX := 0, lastY := 0
+    
+    MouseGetPos(&x, &y)
+    ; tooltip3("x:" x " y:" y)
+    if (x != lastX || y != lastY) {
+        ; 直接使用鼠标坐标作为窗口位置，确保中心对准
+        cursorGui.Show("NA x" x+radius " y" y " w" radius*2 " h" radius*2)
+        lastX := x, lastY := y
+    }
+}
+
+
+setCursorColor(color_){
+    global circle
+    circle.Opt("c" color_)
+}
