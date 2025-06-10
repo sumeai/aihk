@@ -48,10 +48,13 @@ ______("*Appskey", "启动飞扬魔法键盘")
 ______("!CapsLock", "Alt+CapsLock ==> 启动飞扬魔法键盘")
 ______("Capslock & Space", "启动飞扬魔法键盘")
 ______("Pause & ScrollLock", "启动飞扬魔法键盘")
+______("::;jp;::", "输入;jp;或;aik; ==> 启动飞扬魔法键盘")
 Pause & ScrollLock::
 !CapsLock::
 Capslock & Space::
 appskey::
+:?*:;jp;::
+:?*:;aik;::
 {
     filepath := A_scriptDir "\bin\飞扬魔法键盘\飞扬魔法键盘.ahk"
     ; var_temp := change_path_ext(filepath, "exe") 
@@ -82,14 +85,14 @@ Capslock & /::
 
 ______("!Pause", "Alt+Pause ==> 重启启动AiHK")
 ______("::;reload;::", "输入;reload; ==> 重启启动AiHK")
-::;reload;:: 
+:*?:;reload;:: 
 !Pause:: 
 {
     talkshow("重启启动AiHK")
     reload
 }
 
-::;exitaihk;::
+:*?:;exitaihk;::
 {
     talkshow("退出AiHK")
     ExitApp
@@ -119,28 +122,26 @@ ______("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内容 ")
 
 ;:*:ahkhelp2;::run 'https://www.autohotkey.com/docs/v2/index.htm'
 ______("::;ahkhelp::", "打开AutoHotkey帮助文档")
-::;ahkhelp::
-:*:ahkhelp;::
+:?*:;ahkhelp;::
 {
     run StrReplace(a_ahkpath, "64.exe", ".chm")
 }
 
 ______("::;ahkspy::", "打开AutoHotkey Spy 查看窗口信息")
-::;ahkspy::
-:*:ahkspy;::
+:?*:;ahkspy;::
 {
     SplitPath a_ahkpath, &name, &dir, &ext, &name_no_ext, &drive 
     run StrReplace(dir, "v2", "WindowSpy.ahk")
 }
 
 ______("::;ahkroot::", "打开 AiHK 根文件夹")
-::;ahkroot::
+:?*:;ahkroot;::
 {
     run A_scriptDir
 }
 
 ______("::;ahksrc::", "打开 AiHK/src 文件夹 " )
-::;ahksrc::
+:?*:;ahksrc;::
 {
     run A_scriptDir . "/src"
 }

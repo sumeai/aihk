@@ -4,7 +4,7 @@ g_keyBoard_color := GetKeyboardColor()
 
 
 ; 创建圆形光标GUI
-cursorGui := Gui("+AlwaysOnTop +ToolWindow -Caption +E0x20 +LastFound")
+cursorGui := Gui("+AlwaysOnTop +ToolWindow -Caption +E0x20 +LastFound", "Cursor")
 WinSetTransColor("FFFFFF")  ; 设置白色为透明色
 cursorGui.BackColor := "FFFFFF"  ; 白色背景(将被透明化)
 cursorGui.MarginX := 0, cursorGui.MarginY := 0
