@@ -64,28 +64,28 @@ _ctrlInfo := Map()          ;; 存储所有的按钮对象的初始化信息
 _keyNameArray := Array()    ;; 存储所有的按钮对象的Text
 
 ; 添加按钮
-_key["ico"] := myGui.Add("Picture", "Section w" k_KeyHeight " xm h" k_KeyHeight " y9", g_keyBoard_icon)
+_key["ico"] := myGui.Add("Picture", "Section " ctrl_position("ico", "w" k_KeyHeight " xm h" k_KeyHeight " y9"), g_keyBoard_icon)
 _key["ico"].OnEvent("Click", StartDrag)
 
 ; _key["appskey"] := myGui.Add("Button", "Section w" k_KeyWidth " xm h" k_KeyHeight " y9", "☆")
 ; _key["appskey"].OnEvent("Click", StartDrag)
 ; _key["appskey"].OnEvent("DoubleClick", 移动窗口)
 
-_key["f1"] := myGui.Add("Button", g_Position, "F1")
-_key["f2"] := myGui.Add("Button", g_Position, "F2")
-_key["f3"] := myGui.Add("Button", g_Position, "F3")
-_key["f4"] := myGui.Add("Button", g_Position, "F4")
-_key["f5"] := myGui.Add("Button", g_Position, "F5")
-_key["f6"] := myGui.Add("Button", g_Position, "F6")
-_key["f7"] := myGui.Add("Button", g_Position, "F7")
-_key["f8"] := myGui.Add("Button", g_Position, "F8")
-_key["f9"] := myGui.Add("Button", g_Position, "F9")
-_key["f10"] := myGui.Add("Button", g_Position, "F10")
-_key["f11"] := myGui.Add("Button", g_Position, "F11")
-_key["f12"] := myGui.Add("Button", g_Position, "F12")
-_key["f13"] := myGui.Add("Button", "x+1 w22 h" k_KeyHeight, "!")
+_key["f1"] := myGui.Add("Button", ctrl_position("f1", g_Position), "F1")
+_key["f2"] := myGui.Add("Button", ctrl_position("f2", g_Position), "F2")
+_key["f3"] := myGui.Add("Button", ctrl_position("f3", g_Position), "F3")
+_key["f4"] := myGui.Add("Button", ctrl_position("f4", g_Position), "F4")
+_key["f5"] := myGui.Add("Button", ctrl_position("f5", g_Position), "F5")
+_key["f6"] := myGui.Add("Button", ctrl_position("f6", g_Position), "F6")
+_key["f7"] := myGui.Add("Button", ctrl_position("f7", g_Position), "F7")
+_key["f8"] := myGui.Add("Button", ctrl_position("f8", g_Position), "F8")
+_key["f9"] := myGui.Add("Button", ctrl_position("f9", g_Position), "F9")
+_key["f10"] := myGui.Add("Button", ctrl_position("f10", g_Position), "F10")
+_key["f11"] := myGui.Add("Button", ctrl_position("f11", g_Position), "F11")
+_key["f12"] := myGui.Add("Button", ctrl_position("f12", g_Position), "F12")
+_key["f13"] := myGui.Add("Button", ctrl_position("f13","x+1 w22 h" k_KeyHeight), "!")
 
-_key["appskey"] := myGui.Add("Button", "x+1 w21 h" k_KeyHeight, "...")
+_key["appskey"] := myGui.Add("Button", ctrl_position("appskey", "x+1 w21 h" k_KeyHeight), "...")
 _key["appskey"].OnEvent("Click", StartDrag)
 
 ;; 右上角
@@ -102,114 +102,102 @@ myGui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
 
 
 
-_key["tilde"] := myGui.Add("Button", "Section w" k_KeyWidth " xm h" k_KeyHeight " y+1", "~")
-_key["1"] := myGui.Add("Button", g_Position, "1")
-_key["2"] := myGui.Add("Button", g_Position, "2")
-_key["3"] := myGui.Add("Button", g_Position, "3")
-_key["4"] := myGui.Add("Button", g_Position, "4")
-_key["5"] := myGui.Add("Button", g_Position, "5")
-_key["6"] := myGui.Add("Button", g_Position, "6")
-_key["7"] := myGui.Add("Button", g_Position, "7")
-_key["8"] := myGui.Add("Button", g_Position, "8")
-_key["9"] := myGui.Add("Button", g_Position, "9")
-_key["0"] := myGui.Add("Button", g_Position, "0")
-_key["sub"] := myGui.Add("Button", g_Position, "-")
-_key["equal"] := myGui.Add("Button", g_Position, "=")
+_key["tilde"] := myGui.Add("Button", "Section " ctrl_position("tilde", "w" k_KeyWidth " xm h" k_KeyHeight " y+1"), "~")
+_key["1"] := myGui.Add("Button", ctrl_position("1", g_Position), "1")
+_key["2"] := myGui.Add("Button", ctrl_position("2", g_Position), "2")
+_key["3"] := myGui.Add("Button", ctrl_position("3", g_Position), "3")
+_key["4"] := myGui.Add("Button", ctrl_position("4", g_Position), "4")
+_key["5"] := myGui.Add("Button", ctrl_position("5", g_Position), "5")
+_key["6"] := myGui.Add("Button", ctrl_position("6", g_Position), "6")
+_key["7"] := myGui.Add("Button", ctrl_position("7", g_Position), "7")
+_key["8"] := myGui.Add("Button", ctrl_position("8", g_Position), "8")
+_key["9"] := myGui.Add("Button", ctrl_position("9", g_Position), "9")
+_key["0"] := myGui.Add("Button", ctrl_position("0", g_Position), "0")
+_key["sub"] := myGui.Add("Button", ctrl_position("sub", g_Position), "-")
+_key["equal"] := myGui.Add("Button", ctrl_position("equal", g_Position), "=")
 
 
 width := k_KeyWidth + 9
-_key["bk"] := myGui.Add("Button", "x+1"  " w" width " h" k_KeyHeight, "Bk")
-_key["tab"] := myGui.Add("Button", Format("xm y+{} h{} w{}", 1, k_KeyHeight, k_KeyWidth+9), "Tab")
-_key["q"] := myGui.Add("Button", g_Position, "Q")
-_key["w"] := myGui.Add("Button", g_Position, "W")
-_key["e"] := myGui.Add("Button", g_Position, "E")
-_key["r"] := myGui.Add("Button", g_Position, "R")
-_key["t"] := myGui.Add("Button", g_Position, "T")
-_key["y"] := myGui.Add("Button", g_Position, "Y")
-_key["u"] := myGui.Add("Button", g_Position, "U")
-_key["i"] := myGui.Add("Button", g_Position, "I")
-_key["o"] := myGui.Add("Button", g_Position, "O")
-_key["p"] := myGui.Add("Button", g_Position, "P")
-_key["lf"] := myGui.Add("Button", g_Position, "[")
-_key["rf"] := myGui.Add("Button", g_Position, "]")
-_key["fxg"] := myGui.Add("Button", g_Position, "\")
+_key["bk"] := myGui.Add("Button", ctrl_position("bk","x+1"  " w" width " h" k_KeyHeight), "Bk")
+_key["tab"] := myGui.Add("Button", ctrl_position("tab", Format("xm y+{} h{} w{}", 1, k_KeyHeight, k_KeyWidth+9)), "Tab")
+_key["q"] := myGui.Add("Button", ctrl_position("q", g_Position), "Q")
+_key["w"] := myGui.Add("Button", ctrl_position("w", g_Position), "W")
+_key["e"] := myGui.Add("Button", ctrl_position("e", g_Position), "E")
+_key["r"] := myGui.Add("Button", ctrl_position("r", g_Position), "R")
+_key["t"] := myGui.Add("Button", ctrl_position("t", g_Position), "T")
+_key["y"] := myGui.Add("Button", ctrl_position("y", g_Position), "Y")
+_key["u"] := myGui.Add("Button", ctrl_position("u", g_Position), "U")
+_key["i"] := myGui.Add("Button", ctrl_position("i", g_Position), "I")
+_key["o"] := myGui.Add("Button", ctrl_position("o", g_Position), "O")
+_key["p"] := myGui.Add("Button", ctrl_position("p", g_Position), "P")
+_key["lf"] := myGui.Add("Button", ctrl_position("lf", g_Position), "[")
+_key["rf"] := myGui.Add("Button", ctrl_position("rf", g_Position), "]")
+_key["fxg"] := myGui.Add("Button", ctrl_position("fxg", g_Position), "\")
 
-_key["capslock"] := myGui.Add("Button", Format("xm y+{} h{} w48", 1, k_KeyHeight), "Caps")
+_key["capslock"] := myGui.Add("Button", ctrl_position("capslock", Format("xm y+{} h{} w48", 1, k_KeyHeight)), "Caps")
 _key["capslock"].OnEvent("Click", CapsLockHandle)
 
-_key["a"] := myGui.Add("Button", g_Position, "A")
-_key["s"] := myGui.Add("Button", g_Position, "S")
-_key["d"] := myGui.Add("Button", g_Position, "D")
-_key["f"] := myGui.Add("Button", g_Position, "F")
-_key["g"] := myGui.Add("Button", g_Position, "G")
-_key["h"] := myGui.Add("Button", g_Position, "H")
-_key["j"] := myGui.Add("Button", g_Position, "J")
-_key["k"] := myGui.Add("Button", g_Position, "K")
-_key["l"] := myGui.Add("Button", g_Position, "L")
-_key["mh"] := myGui.Add("Button", g_Position, ";")
-_key["dyh"] := myGui.Add("Button", g_Position, "'")
+_key["a"] := myGui.Add("Button", ctrl_position("a", g_Position), "A")
+_key["s"] := myGui.Add("Button", ctrl_position("s", g_Position), "S")
+_key["d"] := myGui.Add("Button", ctrl_position("d", g_Position), "D")
+_key["f"] := myGui.Add("Button", ctrl_position("f", g_Position), "F")
+_key["g"] := myGui.Add("Button", ctrl_position("g", g_Position), "G")
+_key["h"] := myGui.Add("Button", ctrl_position("h", g_Position), "H")
+_key["j"] := myGui.Add("Button", ctrl_position("j", g_Position), "J")
+_key["k"] := myGui.Add("Button", ctrl_position("k", g_Position), "K")
+_key["l"] := myGui.Add("Button", ctrl_position("l", g_Position), "L")
+_key["mh"] := myGui.Add("Button", ctrl_position("mh", g_Position), ";")
+_key["dyh"] := myGui.Add("Button", ctrl_position("dyh", g_Position), "'")
 
 
-_key["enter"] := myGui.Add("Button", Format("x+{}  h{} w52", 1, k_KeyHeight), "Enter")
-_key["shift"] := myGui.Add("Button", Format("xm y+{} h{} w50", 1, k_KeyHeight), "Shift")
+_key["enter"] := myGui.Add("Button", ctrl_position("enter", Format("x+{}  h{} w52", 1, k_KeyHeight)), "Enter")
+_key["shift"] := myGui.Add("Button", ctrl_position("shift", Format("xm y+{} h{} w50", 1, k_KeyHeight)), "Shift")
 _key["shift"].OnEvent("Click", Shift按钮响应)
 
-_key["z"] := myGui.Add("Button", g_Position, "Z")
-_key["x"] := myGui.Add("Button", g_Position, "X")
-_key["c"] := myGui.Add("Button", g_Position, "C")
-_key["v"] := myGui.Add("Button", g_Position, "V")
-_key["b"] := myGui.Add("Button", g_Position, "B")
-_key["n"] := myGui.Add("Button", g_Position, "N")
-_key["m"] := myGui.Add("Button", g_Position, "M")
-_key["dh"] := myGui.Add("Button", g_Position, ",")
-_key["jh"] := myGui.Add("Button", g_Position, ".")
-_key["xg"] := myGui.Add("Button", g_Position, "/")
+_key["z"] := myGui.Add("Button", ctrl_position("z", g_Position), "Z")
+_key["x"] := myGui.Add("Button", ctrl_position("x", g_Position), "X")
+_key["c"] := myGui.Add("Button", ctrl_position("c", g_Position), "C")
+_key["v"] := myGui.Add("Button", ctrl_position("v", g_Position), "V")
+_key["b"] := myGui.Add("Button", ctrl_position("b", g_Position), "B")
+_key["n"] := myGui.Add("Button", ctrl_position("n", g_Position), "N")
+_key["m"] := myGui.Add("Button", ctrl_position("m", g_Position), "M")
+_key["dh"] := myGui.Add("Button", ctrl_position("dh", g_Position), ",")
+_key["jh"] := myGui.Add("Button", ctrl_position("jh", g_Position), ".")
+_key["xg"] := myGui.Add("Button", ctrl_position("xg", g_Position), "/")
 
 
 myGui.SetFont("s7 norm")
-_key["title"] := myGui.Add("Button", "x+1 w81 h" k_KeyHeight, g_keyBoard_name)
+_key["title"] := myGui.Add("Button", ctrl_position("title", "x+1 w81 h" k_KeyHeight), g_keyBoard_name)
 
 _key["title"].OnEvent("Click", (*)=>(_key["space"].Text := "双击切换键盘"))
 _key["title"].OnEvent("DoubleClick", 弹出右键菜单)
 
 
 
-; myGui.SetFont("s9 norm")
-; myGui.Add("Button", Format("h{} x+{}", k_KeyHeight, k_KeyMargin), "隐藏").OnEvent("Click", 显示或隐藏屏幕键盘)
-; myGui.Add("Button", Format("h{} x+{}", k_KeyHeight, k_KeyMargin), "退出").OnEvent("Click", 退出)
-
-; myGui.SetFont("s10 bold")
-; var_temp := 6 * k_KeyMargin
-; _key["setting"] := myGui.Add("Checkbox", Format("x+{} h{} c{}", var_temp, k_KeyHeight, g_keyBoard_color), "■")
-; _key["setting"].OnEvent("Click", 点击SettingCheckBox)
-
 myGui.SetFont("s9 norm")
-_key["ctrl"] := myGui.Add("Button", Format("xm y+{} h{}", 1, k_KeyHeight), "Ctrl")
-_key["win"] := myGui.Add("Button", Format("h{} x+{}", k_KeyHeight, 1), "Win")
-_key["alt"] := myGui.Add("Button", Format("h{} x+{}", k_KeyHeight, 1), "Alt")
+_key["ctrl"] := myGui.Add("Button", ctrl_position("ctrl", Format("xm y+{} h{}", 1, k_KeyHeight)), "Ctrl")
+_key["win"] := myGui.Add("Button", ctrl_position("win", Format("h{} x+{}", k_KeyHeight, 1)), "Win")
+_key["alt"] := myGui.Add("Button", ctrl_position("alt", Format("h{} x+{}", k_KeyHeight, 1)), "Alt")
 
 myGui.SetFont("s8 norm")
-_key["space"] := myGui.Add("Button", Format("h{} x+{} w{}", k_KeyHeight, 1, k_SpacebarWidth), "Space")
-_key["btn_setting"] := myGui.Add("Button", Format("h{} x+{}", k_KeyHeight, 1), "设置")
+_key["space"] := myGui.Add("Button", ctrl_position("space", Format("h{} x+{} w{}", k_KeyHeight, 1, k_SpacebarWidth)), "Space")
+_key["btn_setting"] := myGui.Add("Button", ctrl_position("btn_setting", Format("h{} x+{}", k_KeyHeight, 1)), "设置")
 _key["btn_setting"].OnEvent("Click", 勾选SettingCheckBox)
 
 myGui.SetFont("s9 norm")
-_key["hide"] := myGui.Add("Button", Format("h{} x+{}", k_KeyHeight, 1), "隐藏")
+_key["hide"] := myGui.Add("Button", ctrl_position("hide", Format("h{} x+{}", k_KeyHeight, 1)), "隐藏")
 _key["hide"].OnEvent("Click", 显示或隐藏屏幕键盘)
 
 ;; 右下角
 myGui.SetFont("s8 norm")
-_key["exit"] := myGui.Add("Button", Format("h{} w39 x+{}", k_KeyHeight, 1), "退出")
+_key["exit"] := myGui.Add("Button", ctrl_position("exit", Format("h{} w39 x+{}", k_KeyHeight, 1)), "退出")
 _key["exit"].OnEvent("Click", 退出)
 
-
-; _key["ico"] := myGui.Add("Picture", "x+1 w40 h" k_KeyHeight, g_keyBoard_icon)
-; _key["ico"].OnEvent("Click", 移动窗口)
 
 
 myGui.SetFont("s10 norm")
 var_temp := 6 * k_KeyMargin
-_key["setting"] := myGui.Add("Checkbox", Format("x200 y100 h{} c{}  Hidden", var_temp, k_KeyHeight, g_keyBoard_color), "■")
+_key["setting"] := myGui.Add("Checkbox", ctrl_position("setting", Format("x200 y100 h{} c{} ", var_temp, k_KeyHeight, g_keyBoard_color)) " Hidden" , "■")
 _key["setting"].OnEvent("Click", 点击SettingCheckBox)
 
 myGui.SetFont("s9 norm")
@@ -219,8 +207,8 @@ height := k_KeyHeight - 2
 
 
 
-_key_sidepic := myGui.Add("Picture", "x456 y36 AltSubmit", g_keyBoard_sidepic)
-_key_sidepic.OnEvent("Click", StartDrag)
+_key["sidepic"] := myGui.Add("Picture", ctrl_position("sidepic", "x456 y36 AltSubmit"), g_keyBoard_sidepic)
+_key["sidepic"].OnEvent("Click", StartDrag)
 
 
 ; 最后显示窗口
@@ -249,7 +237,7 @@ myGui.SetFont("s9 norm") ; norm 默认字体，避免颜色导致 GroupBox 样�
 
 var_temp := k_WindowWidth - 32
 
-_GroupBox := myGui.Add("GroupBox", "x10 y0 w" var_temp " h" g_GroupHeight " v_GroupBox")
+_key["groupbox"] := myGui.Add("GroupBox", ctrl_position("groupbox", "x10 y0 w" var_temp " h" g_GroupHeight))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 遍历按钮，批量处理
@@ -298,7 +286,7 @@ for index, value in _keyClickArray2 {
     _key[value].OnEvent("Click", ClickButtonHandle)
 }
 
-; _GroupBox.Visible := false
+; _key["groupbox"].Visible := false
 
 
 

@@ -120,14 +120,3 @@ ShowHotkeyList(title_) {
 }
 
 
-
-saveCtrlProps(_ctrlInfo) {
-    tempini_file := A_ScriptDir "/ctrlinfo.ini"
-
-
-    for key, btn in _ctrlInfo {
-        dataStr := JSON.Dump(btn)
-        IniWrite dataStr, tempini_file, "CtrlProps", key
-    }
-
-}

@@ -90,7 +90,7 @@ CapsLock & \::  ;; test
 
 
     saveCtrlProps(_ctrlInfo)
-    MsgBox "saveCtrlProps() !!"
+    talkshow "saveCtrlProps() !!"
 }
 
 ;; 使用 AppsKey & RShift 切换编辑状态
@@ -507,3 +507,16 @@ AppsKeyHandle(*){
      TipCmdString(cmdstr)
  }
 
+
+saveCtrlProps(_ctrlInfo) {
+    global g_inifile
+    tempini_file := A_ScriptDir "/ctrlinfo.ini"
+ 
+
+    for key, btn in _ctrlInfo {
+        ; dataStr := JSON.Dump(btn)
+        dataStr := Format('x{} y{} w{} h{} -Border', btn.x, btn.y, btn.w, btn.h)
+        IniWrite dataStr, g_inifile, "CtrlPosition", key
+    }
+
+}

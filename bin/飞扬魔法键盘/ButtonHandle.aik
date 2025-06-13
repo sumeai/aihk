@@ -69,9 +69,10 @@ DragWindow() {
      if var_keyboard = "默认键盘"
          RightMenu.Check("&0 默认键盘")
      var_temp := AllSecFromIniMem(g_inicontent)
+     
      Loop Parse var_temp, "|"
      {
-         if A_LoopField = "" || A_LoopField = "默认键盘"
+         if A_LoopField = "" || A_LoopField = "默认键盘" || A_LoopField = "CtrlPosition"
              continue
          var_line := A_LoopField
          var_menuitem := "&" A_Index " " var_line
@@ -120,20 +121,20 @@ DragWindow() {
 
  
 点击SettingCheckBox(*) {
-     global _key, g_keyBoard_name, k_ID, TransColor, g_keyBoard_setpic, g_keyBoard_sidepic,  _key, _GroupBox, g_keyBoard_settingicon, g_keyBoard_icon
+     global _key, g_keyBoard_name, k_ID, TransColor, g_keyBoard_setpic, g_keyBoard_sidepic,  _key, g_keyBoard_settingicon, g_keyBoard_icon
      myGui.Submit(false)
      if _key["setting"].value
      {
         ;  change_icon("设置.ico", true, 1)
          _key["btn_setting"].Text := "返回"
-         _key_sidepic.Value := g_keyBoard_setpic
+         _key["sidepic"].Value := g_keyBoard_setpic
          _key["title"].Opt("-Right")
          _key["title"].Text := "【 " g_keyBoard_name " 】 处于编辑状态"
          WinSetTransColor TransColor " 255", "ahk_id " k_ID
          Suspend true
-         _GroupBox.Text := ""
+         _key["groupbox"].Text := ""
          Sleep 10
-         _GroupBox.Text := ""
+         _key["groupbox"].Text := ""
         TraySetIcon(g_keyBoard_settingicon, , false)
      }
      else
@@ -142,14 +143,14 @@ DragWindow() {
          var_color := ∑获取当前键盘颜色()
         ;  change_icon(var_color ".ico", true)
          _key["btn_setting"].Text := "设置"
-         _key_sidepic.Value := g_keyBoard_sidepic
+         _key["sidepic"].Value := g_keyBoard_sidepic
          _key["title"].Opt("+Right")
          _key["title"].Text := "【 " g_keyBoard_name " 】"
          WinSetTransColor TransColor " 150", "ahk_id " k_ID
          Suspend false
-         _GroupBox.Text := ""
+         _key["groupbox"].Text := ""
          Sleep 10
-         _GroupBox.Text := ""
+         _key["groupbox"].Text := ""
      }
  }
 
@@ -317,3 +318,10 @@ FocusButtonHandle(ctrl, info){
     }
 
  }
+
+ ctrl_position(ctrlName, default_position){
+    global g_iniContent
+    return FindFromIniMem(g_iniContent, "CtrlPosition", ctrlName, default_position)
+ }
+
+ 

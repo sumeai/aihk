@@ -70,6 +70,7 @@ if !FileExist(g_inifile)
 
 g_iniContent := IniFileRead(g_inifile)
 
+
 if not g_keyBoard {
     g_keyBoard := IniRead("temp.ini", "飞扬魔法键盘", "最近键盘", "默认键盘")
 }
@@ -558,11 +559,11 @@ ChangePicture(ctrl, newImagePath) {
         btn.Visible  := true
     }
 
-    _GroupBox.Visible := true
+    _key["groupbox"].Visible := true
  }
 
 切换窗口为语音模态(*){
-    global _key, g_keyBoard_setpic, _key_sidepic
+    global _key, g_keyBoard_setpic
     ; 设置所有按钮透明度为 30%
     for key, btn in _key {
         if (key != "ico") {
@@ -570,14 +571,14 @@ ChangePicture(ctrl, newImagePath) {
         }
     }
 
-    ; _key_sidepic.Move(9999, 9999)
-    _key_sidepic.Visible := false
+    ; _key["sidepic"].Move(9999, 9999)
+    _key["sidepic"].Visible := false
 
-    ;; _key_sidepic.Hide()
-    ; DllCall("ShowWindow", "Ptr", _key_sidepic.Hwnd, "Int", 0) ; 0 = SW_HIDE
-    ; ChangePicture(_key_sidepic, g_keyBoard_setpic)
+    ;; _key["sidepic"].Hide()
+    ; DllCall("ShowWindow", "Ptr", _key["sidepic"].Hwnd, "Int", 0) ; 0 = SW_HIDE
+    ; ChangePicture(_key["sidepic"], g_keyBoard_setpic)
 
-    _GroupBox.Visible := false
+    _key["groupbox"].Visible := false
  }
 
 切换窗口为输入模态(*){

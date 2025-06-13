@@ -176,7 +176,7 @@ IniFileRead(var_fileName) {
     if !FileExist(var_fileName)
         return ""
 
-    var_fileContent := FileRead(var_fileName)
+    var_fileContent := FileRead(var_fileName, "UTF-8")
     if var_fileContent = ""
         return ""
 
@@ -270,6 +270,7 @@ AllSecFromIniMem(_inimem) {
 
         if RegExMatch(line, "^\[.+\]", &match) {
             var_sec := RegExReplace(match[], "[\[\]]", "")
+
             if (var_sec != "") {
                 if (var_ret != "")
                     var_ret .= "|"
