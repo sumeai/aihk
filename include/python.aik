@@ -1,0 +1,129 @@
+
+; 运行命令并获取输出
+RunWaitOne(cmd) {
+    shell := ComObject("WScript.Shell")
+    exec := shell.Exec(cmd)
+    output := exec.StdOut.ReadAll()
+    return output
+}
+
+IniReadPythonPath() {
+    if not FileExist("python.ini") {
+        IniWrite("", "python.ini", "python", "python_path")
+        return ""
+    }
+    
+    python_path := IniRead("python.ini", "python", "python_path")
+    return python_path
+}
+
+;; 写入 Python 可执行文件路径(FindPythonPath返回python.exe的路径之前，先调用此方法写入到python.ini)
+IniWritePythonPath(python_path) {
+    ; 检查是否需要写入（避免重复写入）
+    current_path := IniReadPythonPath()
+    ; MsgBox("写入 Python 可执行文件路径: " . python_path)
+    if (current_path = python_path) {
+        return python_path  ; 路径相同，直接返回
+    }
+    IniWrite(python_path, "python.ini", "python", "python_path")
+    return python_path
+}
+
+
+; 查找 Python 可执行文件路径
+FindPythonPath() {
+    ; 检查缓存的路径
+    python_path := IniReadPythonPath()
+    if (python_path && FileExist(python_path)) {
+        return python_path
+    }
+
+    ; 1. 尝试通过 PATH 环境变量运行 python 或 python3
+    for cmd in ["python3", "python"] {
+        try {
+            Run(cmd . " --version", "", "Hide", &pid)
+            ProcessWaitClose(pid)
+            return IniWritePythonPath(cmd)  ; 如果成功，直接使用命令
+        }
+    }
+    
+    ; 2. 检查常见路径
+    common_paths := [
+        "C:\Program Files\Anaconda3\python.exe",
+        "C:\Program Files (x86)\Anaconda3\python.exe",
+        "C:\Users\" . A_UserName . "\AppData\Local\Continuum\anaconda3\python.exe",
+        "C:\Users\" . A_UserName . "\AppData\Local\Microsoft\WindowsApps\python.exe"
+    ]
+    ; 添加标准 Python 安装路径的动态版本
+    for major in [3, 4] {
+        Loop 100 {  ; 0 to 99
+            minor := A_Index - 1
+            version := major . "." . minor
+            common_paths.Push("C:\Program Files\Python" . version . "\python.exe")
+            common_paths.Push("C:\Program Files (x86)\Python" . version . "-32\python.exe")
+            common_paths.Push("C:\Users\" . A_UserName . "\AppData\Local\Programs\Python\Python" . version . "\python.exe")
+        }
+    }
+
+    
+    for path in common_paths {
+        if FileExist(path) {
+            return IniWritePythonPath(path)
+        }
+    }
+    
+    ; 3. 动态扫描注册表
+    reg_keys := [
+        "HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore",
+        "HKEY_CURRENT_USER\SOFTWARE\Python\PythonCore"
+    ]
+    for reg_base in reg_keys {
+        try {
+            Loop Reg, reg_base, "K" {
+                version := A_LoopRegName
+                try {
+                    reg_path := RegRead(reg_base . "\" . version . "\InstallPath", "ExecutablePath")
+                    if FileExist(reg_path) {
+                        return IniWritePythonPath(reg_path)
+                    }
+                }
+            }
+        }
+    }
+    
+    ; 4. 尝试使用 where 命令查找
+    try {
+        output := RunWaitOne("where python")
+        paths := StrSplit(output, "`n")
+        for path in paths {
+            path := Trim(path)
+            if FileExist(path) && InStr(path, "python.exe") {
+                return IniWritePythonPath(path)
+            }
+        }
+    }
+    
+    throw Error("Python executable not found. Please ensure Python is installed.")
+}
+
+
+
+PythonRun(python_script) {
+    ;; 检测 python_script 是否为空
+    if (python_script == "") {
+        throw Error("python run failed, python_script is empty.")
+    }
+
+    ;; 检测 Python 是否安装
+    python_path := FindPythonPath()
+    MsgBox "PythonRun ==> " python_path "  " python_script
+
+    ;; 检查python_path 是否有效
+    if (python_path == "") {
+        throw Error("python run failed, python_path is empty.")
+    }
+
+    python_pid := 0
+    Run(python_path . " " . python_script, "", "", &python_pid)
+    return python_pid
+}

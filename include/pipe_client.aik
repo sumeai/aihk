@@ -1,0 +1,77 @@
+; 发送消息到 Python
+SendMessageToPythonServer(hPipeServer, msg) {
+    ; 使用 UTF-8 编码消息
+    msg_utf8 := Buffer(StrLen(msg) * 4)  ; 分配足够空间
+    StrPut(msg, msg_utf8.Ptr, "UTF-8")
+    bytes_to_write := StrLen(msg)
+
+    ; DllCall("ConnectNamedPipe", "Ptr", hPipeServer, "Ptr", 0)
+    ; DllCall("WriteFile", "Ptr", hPipeServer, "Str", msg, "UInt", StrLen(msg) * 2, "Ptr", 0, "Ptr", 0)
+    ; DllCall("DisconnectNamedPipe", "Ptr", hPipeServer)
+
+    ; 写入管道
+    bytes_written := Buffer(4, 0)
+    success := DllCall("WriteFile", "Ptr", hPipeServer, "Ptr", msg_utf8.Ptr, "UInt", bytes_to_write, "Ptr", bytes_written.Ptr, "Ptr", 0)
+    if (!success) {
+        MsgBox("WriteFile failed with error: " . A_LastError)
+        pipe_connected := false  ; 重置连接状态
+        DllCall("DisconnectNamedPipe", "Ptr", hPipeServer)
+        return false
+    }    
+
+    ; 刷新管道，确保数据发送
+    DllCall("FlushFileBuffers", "Ptr", hPipeServer)
+    return true    
+}
+
+CheckPipeReceived(hPipeClient) {
+    ; 检查管道是否有数据
+    bytesAvailable := Buffer(4, 0)
+    if (!DllCall("PeekNamedPipe", "Ptr", hPipeClient, "Ptr", 0, "UInt", 0, "Ptr", 0, "Ptr", bytesAvailable.Ptr, "Ptr", 0)) {
+        ; 如果 PeekNamedPipe 失败（例如管道关闭），返回空
+        return ""
+    }
+    if (NumGet(bytesAvailable, 0, "UInt") == 0) {
+        ; 没有数据可用，避免调用 ReadFile, 造成阻塞
+        return ""
+    }
+    
+    ; 管道中有数据，则读取数据
+    data := Buffer(65535, 0)
+    bytesRead := Buffer(4, 0)
+    success := DllCall("ReadFile", "Ptr", hPipeClient, "Ptr", data.Ptr, "UInt", 65535, "Ptr", bytesRead.Ptr, "Ptr", 0)
+    if (success && NumGet(bytesRead, 0, "UInt") > 0) {
+        message := StrGet(data.Ptr, "UTF-8")
+        return message
+        ; MsgBox("AHK received: " . message)
+    }
+}
+
+
+CreateNamedPipe(pipe_ahk_to_server) {
+    hPipeServer := DllCall("CreateNamedPipe", "Str", pipe_ahk_to_server, "UInt", 3, "UInt", 0, "UInt", 1, "UInt", 65535, "UInt", 65535, "UInt", 0, "Ptr", 0, "Ptr")
+    if (hPipeServer = -1) {
+        MsgBox("Failed to create pipe \\.\pipe\ahk_to_server. Error: " . A_LastError)
+    }
+    return hPipeServer
+}
+
+ConnectServerPipe(pipe_server_to_ahk) {
+    max_retries := 10
+    retry_delay := 1000  ; 每次重试间隔 1 秒
+    attempt := 0
+    hPipeClient := -1
+    while (attempt < max_retries && hPipeClient = -1) {
+        hPipeClient := DllCall("CreateFile", "Str", pipe_server_to_ahk, "UInt", 0xC0000000, "UInt", 0, "Ptr", 0, "UInt", 3, "UInt", 0, "Ptr", 0, "Ptr")
+        if (hPipeClient = -1) {
+            attempt++
+            ToolTip "Connect pipe  server_to_ahk. Failed:: " . attempt . " of " . max_retries . "."
+            Sleep(retry_delay)
+        }
+    }
+    if (hPipeClient = -1) {
+        MsgBox("Failed to connect to pipe \\.\pipe\server_to_ahk after " . attempt . " attempts.")
+    }    
+    return hPipeClient
+
+}

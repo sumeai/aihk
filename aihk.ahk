@@ -1,5 +1,5 @@
 ﻿;; 创建开机自动启动的任务计划 AihkStartupTask
-CreateTaskIfNotExists("AihkStartupTask", A_ScriptFullPath)
+; CreateTaskIfNotExists("AihkStartupTask", A_ScriptFullPath)
 
 ;; 1. 首先删除 aihk_run.ahk（后续重新创建）
 if FileExist("aihk_run.ahk") {
