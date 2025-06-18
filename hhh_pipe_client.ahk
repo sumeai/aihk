@@ -77,17 +77,37 @@ SetTimer(CheckPipe, 1000)
 CheckPipe() {
     global hPipeClient, logFile
     ; FileAppend("[" A_Now "] Checking pipe for messages...`n", logFile)
-    ToolTip "---"
+    ; ToolTip "---"
     msg := CheckPipeReceived(hPipeClient)
 
     if (msg) {
         FileAppend("[" A_Now "] Received message: " msg "`n", logFile)
-        talkshow "PIPE[" A_TickCount "]::" msg 
+        ; talkshow "PIPE[" A_TickCount "]::" msg 
+
+        MessageHandler(msg)
     } else {
         ; FileAppend("[" A_Now "] No message received`n", logFile)
-        ToolTip "PIPE[" A_TickCount "]:: " msg 
+        ; ToolTip "PIPE[" A_TickCount "]:: " msg 
     }
 }
+
+MessageHandler(msg) {
+    msgarr := StrSplit(msg, ":")
+    cmdtype := msgarr[1]
+    message := msgarr[2]
+
+    web_pid := 0
+
+    if (cmdtype = "Approve") {
+        report_no := Trim(message)
+        url := "https://lims-approve.szswgcjc.com/?reportCode=" report_no "&env=DEV&isRetry=false&o_u_token=9dcbf9915878418c9df5c3aef4010b1b&type=approve"
+        cmd := "chrome.exe --window-position=100,100 --window-size=800,600 --app=" url
+        Run cmd, , , &web_pid
+    }
+
+    
+}
+
 
 ; 发送消息到 Python
 SendMessageToPython(msg) {
@@ -121,17 +141,18 @@ SendMessageToPython(msg) {
     return re
 }
 
+
 ; 按 F1 发送消息
 F6:: {
     SendMessageToPython("Hello from AHK!")
 }
+
 
 :*?:;exitpipe;::
 F4:: {
     MsgBox "退出AHK程序"
     ExitApp()
 }
-
 
 
 ; 清理并退出
