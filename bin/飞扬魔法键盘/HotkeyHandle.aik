@@ -31,6 +31,12 @@ Capslock & Space::  Suspend
 AppsKey & Space::  Suspend
 
 
+;; 使用 AppsKey & RShift 切换编辑状态
+____________("勾选SettingCheckBox")
+______("CapsLock & e", "勾选SettingCheckBox")
+______("AppsKey & e", "勾选SettingCheckBox")
+CapsLock & e:: 勾选SettingCheckBox()
+AppsKey & e:: 勾选SettingCheckBox()
 
 
 #HotIf WinActive("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
@@ -75,9 +81,9 @@ CapsLock & F1:: ShowHotkeyList(var_text)
 ;; 激活当前键盘
 ____________("激活当前键盘")
 ______("^CapsLock", "Ctrl+capslock ==> 激活当前键盘")
-______("CapsLock & ``", "CapsLock+`` ==> 激活当前键盘")
+______("CapsLock & a", "CapsLock+a ==> 激活当前键盘")
 ^CapsLock:: WinActivate(g_winTitle)
-CapsLock & `::  WinActivate(g_winTitle)
+CapsLock & a::  WinActivate(g_winTitle)
 
 
 
@@ -93,12 +99,6 @@ CapsLock & \::  ;; test
     talkshow "saveCtrlProps() !!"
 }
 
-;; 使用 AppsKey & RShift 切换编辑状态
-____________("勾选SettingCheckBox")
-______(">^!RShift", "右Ctrl+Alt+Rshift ==> 勾选SettingCheckBox")
-______("AppsKey & Rshift", "勾选SettingCheckBox")
->^!RShift:: 勾选SettingCheckBox()
-AppsKey & RShift:: 勾选SettingCheckBox()
 
 
 ____________("移动飞扬魔法键盘窗口")
@@ -275,8 +275,8 @@ ____________("动态生成的Hotkey")
         {
             if bUsers
             {
-                RegisterHotkey("*" k_char, 按键响应, "响应【" k_char "】按键", flag)
-                Hotkey "~*" k_char " up", 响应按键释放, flag
+                ; RegisterHotkey("*" k_char, 按键响应, "响应【" k_char "】按键", flag)
+                ; Hotkey "~*" k_char " up", 响应按键释放, flag
             }
             else
                 Hotkey "~*" k_char, 模拟点击按钮, flag
@@ -287,10 +287,10 @@ ____________("动态生成的Hotkey")
     ;; 对特殊按钮做响应
     if bUsers
     {
-        RegisterHotkey("*,", 按键响应, "响应【,】按键", flag)
-        RegisterHotkey("*'", 按键响应, "响应【'】按键", flag)
-        Hotkey "~*, up", 响应按键释放, flag
-        Hotkey "~*' up", 响应按键释放, flag
+        ; RegisterHotkey("*,", 按键响应, "响应【,】按键", flag)
+        ; RegisterHotkey("*'", 按键响应, "响应【'】按键", flag)
+        ; Hotkey "~*, up", 响应按键释放, flag
+        ; Hotkey "~*' up", 响应按键释放, flag
     }
     else
     {
