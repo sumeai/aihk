@@ -26,14 +26,17 @@ Pause & Esc::
 }
 
 ;; 显示当前定义的Hotkey和HotString
-______("Pause & ?", "显示所有的热键")
+______("Pause & /", "Pause + ? 或 win + ? ==> 【帮助】显示AiHk所有的热键")
+#/::
 Pause & /::
 {
     ShowHotkeyList("飞扬AI司令部所有热键：")
 }
 
 ;; 挂起
-______("+Pause", "Alt+Pause ==> Suspend挂起热键")
+______("+Pause", "Alt+Pause 或 win + | ==> Suspend挂起暂停热键")
+#\::
+#+\::
 +Pause::
 {
     if (A_IsSuspended) {
@@ -43,14 +46,17 @@ ______("+Pause", "Alt+Pause ==> Suspend挂起热键")
     }
 }
 
+:*?:;suspend;:: 
+:*?:;zt;:: 
+:*?:;||;:: 
+{
+    SwitchSuspend()
+}
+
 #Hotif NOT WinExist("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
 ______("*Appskey", "启动飞扬魔法键盘")
-______("!CapsLock", "Alt+CapsLock ==> 启动飞扬魔法键盘")
 ______("Capslock & Space", "启动飞扬魔法键盘")
-______("Pause & ScrollLock", "启动飞扬魔法键盘")
 ______("::;jp;::", "输入;jp;或;aik; ==> 启动飞扬魔法键盘")
-Pause & ScrollLock::
-!CapsLock::
 Capslock & Space::
 appskey::
 :?*:;jp;::
@@ -88,13 +94,14 @@ ______("::;reload;::", "输入;reload; ==> 重启启动AiHK")
 :*?:;reload;:: 
 !Pause:: 
 {
-    talkshow("重启启动AiHK")
+    talkshow("重启启动AiHK", "AiHK")
     reload
 }
 
+
 :*?:;exitaihk;::
 {
-    talkshow("退出AiHK")
+    talkshow("退出AiHK", "AiHK")
     ExitApp
 }
 
@@ -153,3 +160,11 @@ ______("::;ahksrc::", "打开 AiHK/src 文件夹 " )
 #include ./include/path.aik
 #Include  "./include/hotkey_manage.aik"
 
+SwitchSuspend()
+{
+    if (A_IsSuspended) {
+        Suspend false
+    } else {
+        Suspend true
+    }
+}

@@ -279,7 +279,9 @@ for index, value in _keyClickArray {
 
         if (g_keyBoard != "默认键盘") {
             k_char := ValnameToKeyname(value)
-            RegisterHotkey("*" value, 按键响应, "响应【" value "】按键", "On" )
+            var_tip := GetCmdStringTip(cmdstr)
+            discription :=  "响应【" value "】按键 ==> " var_tip
+            RegisterHotkey("*" value, 按键响应, discription, "On" )
             Hotkey "~*" value " up", 响应按键释放, "On" 
         }
      } else If (g_keyBoard != "默认键盘") {

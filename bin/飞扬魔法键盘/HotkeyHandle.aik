@@ -4,89 +4,7 @@ AppsKey::AppsKeyHandle()
 ; *~AppsKey up::Return
 
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 以下快捷键在suspend状态下依然生效
-#SuspendExempt true
-
-____________("以下Hotkey在suspend状态下依然生效")
-
-;; AppsKey & esc 退出 飞扬魔法键盘
-______(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
-______("AppsKey & esc", "退出飞扬魔法键盘")
-______("Capslock & esc", "退出飞扬魔法键盘")
-______(">^!esc", "右Ctrl+Alt+ESC ==> 退出飞扬魔法键盘")
->^!esc:: 退出()
-AppsKey & esc:: 退出()
-capslock & esc:: 退出()
-
-
-
-
-;; 挂起
-______("Capslock & Space", "Suspend 暂停快捷键")
-______("AppsKey & Space", "Suspend 暂停快捷键")
-Capslock & Space::  Suspend
-AppsKey & Space::  Suspend
-
-
-;; 使用 AppsKey & RShift 切换编辑状态
-____________("勾选SettingCheckBox")
-______("CapsLock & e", "勾选SettingCheckBox")
-______("AppsKey & e", "勾选SettingCheckBox")
-CapsLock & e:: 勾选SettingCheckBox()
-AppsKey & e:: 勾选SettingCheckBox()
-
-
-#HotIf WinActive("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
-______("esc", "退出APP")
-esc:: 退出()
-#HotIf 
-
-____END____("suspend状态结束")
-#SuspendExempt false
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-______("AppsKey & Alt", "AppsKey & Alt ==> 显示或隐藏飞扬键盘")
-______(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
-AppsKey & Alt:: 显示或隐藏屏幕键盘() 
->!AppsKey:: 显示或隐藏屏幕键盘() 
->^Alt:: 显示或隐藏屏幕键盘() 
-
-____________("切换键盘")
-;; Alt+capslock 切换到最近键盘
-______(">^!Space", "右Ctrl+Alt+Space ==> 切换到最近键盘")
-______("!CapsLock", "Alt+capslock ==> 切换到最近键盘")
-______("CapsLock & Tab", "切换到最近键盘")
->^!Space:: 切换到最近键盘()
-!CapsLock:: 切换到最近键盘()
-CapsLock & Tab:: 切换到最近键盘()
-
-;; 查看所有的快捷键
-____________("查看快捷键")
-______(">!^/", "右Alt+Ctrl+/ ==> 查看飞扬魔法键盘所有的快捷键")
-______(">^<^/", "右Ctrl + 左Ctrl +/ ==> 查看飞扬魔法键盘所有的快捷键")
-______("CapsLock & /", "CapsLock & ? ==> 查看飞扬魔法键盘所有的快捷键")
-______("CapsLock & F1", "CapsLock & F1 ==> 查看飞扬魔法键盘所有的快捷键")
-var_text:= "飞扬魔法键盘所有热键汇总！ (按ESC关闭)"
->!^/:: ShowHotkeyList(var_text)
->^<^/:: ShowHotkeyList(var_text)
-CapsLock & /:: ShowHotkeyList(var_text)
-CapsLock & F1:: ShowHotkeyList(var_text)
-
-
-;; 激活当前键盘
-____________("激活当前键盘")
-______("^CapsLock", "Ctrl+capslock ==> 激活当前键盘")
-______("CapsLock & a", "CapsLock+a ==> 激活当前键盘")
-^CapsLock:: WinActivate(g_winTitle)
-CapsLock & a::  WinActivate(g_winTitle)
-
-
-
+; 用于测试的快捷键
 CapsLock & \::  ;; test
 {
     ; lastTitle := ""
@@ -100,11 +18,90 @@ CapsLock & \::  ;; test
 }
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 以下快捷键在suspend状态下依然生效
+#SuspendExempt true
+
+____________("以下Hotkey在suspend状态下依然生效")
+
+#HotIf WinActive("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
+______("esc", "当前窗口为飞扬魔法键盘时，按ESC退出")
+esc:: 退出()
+#HotIf 
+
+
+;; AppsKey & esc 退出 飞扬魔法键盘
+______("Capslock & esc", "Capslock/AppsKey + esc 退出飞扬魔法键盘（右Ctrl+Alt+ESC也可退出）")
+>^!esc:: 退出()
+AppsKey & esc:: 退出()
+capslock & esc:: 退出()
+
+
+;; 挂起
+______("Capslock & Space", "Capslock/AppsKey + Space ==> Suspend 暂停快捷键")
+Capslock & Space::  Suspend
+AppsKey & Space::  Suspend
+
+
+;; 使用 AppsKey & e 切换编辑状态
+______("CapsLock & e", "Capslock/AppsKey + e ==> 勾选SettingCheckBox")
+CapsLock & e:: 勾选SettingCheckBox()
+AppsKey & e:: 勾选SettingCheckBox()
+
+
+____END____("suspend状态结束")
+#SuspendExempt false
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;; 查看所有的快捷键
+______("CapsLock & F1", "Capslock/AppsKey + F1 ==> 【帮助】查看飞扬魔法键盘所有的快捷键")
+var_text:= "飞扬魔法键盘【" g_keyBoard "】所有热键汇总！ (按ESC关闭)"
+AppsKey & F1:: ShowHotkeyList(var_text)
+CapsLock & F1:: ShowHotkeyList(var_text)
+
+
+;; 激活当前键盘
+______("CapsLock & a", "CapsLock/AppsKey + a ==> 激活当前键盘")
+CapsLock & a::  WinActivate(g_winTitle)
+AppsKey & a::  WinActivate(g_winTitle)
+
+
+______("AppsKey & Alt", "AppsKey + Alt ==> 显示或隐藏飞扬键盘")
+______(">^Alt", "右Ctrl+Alt ==> 显示或隐藏飞扬键盘")
+AppsKey & Alt:: 显示或隐藏屏幕键盘() 
+>!AppsKey:: 显示或隐藏屏幕键盘() 
+>^Alt:: 显示或隐藏屏幕键盘() 
+
+
+____________("切换键盘模态（键盘快捷键、输入框对话、语音对话）")
+______("CapsLock & Tab", "CapsLock + Tab ==> 切换飞扬键盘的模态")    
+CapsLock & Tab:: 切换键盘模态()
+
+
+______("CapsLock & k", "CapsLock + K ==> 切换到飞扬键盘模态")    
+CapsLock & k:: 进入键盘模态()
+
+______("CapsLock & i", "CapsLock + I ==> 切换到输入框对话模态")    
+CapsLock & i:: 进入输入框模态()
+
+______("CapsLock & v", "CapsLock + V ==> 切换到语音对话模态")    
+CapsLock & v:: 进入语音模态()
+
+
+
+____________("CapsLock+数字键==>切换键盘")
+;; Alt+capslock 切换到最近键盘
+______("CapsLock & ``", "CapsLock/AppsKey + `` ==> 切换到最近键盘")
+AppsKey & `:: 切换到最近键盘()
+CapsLock & `:: 切换到最近键盘()
 
 ____________("移动飞扬魔法键盘窗口")
 
-______("CapsLock & Left", "CapsLock + ← ==> 飞扬魔法键盘向左移动（按住Alt到屏幕左侧）")
-______("CapsLock & Numpad4", "CapsLock + 数字键4 ==> 飞扬魔法键盘向左移动（按住Alt到屏幕左侧）")
+______("CapsLock & Left", "CapsLock + ←/数字键4 ==> 飞扬魔法键盘向左移动（按住Alt到屏幕左侧）")
 CapsLock & Left:: 
 CapsLock & Numpad4:: 
 {
@@ -115,8 +112,7 @@ CapsLock & Numpad4::
     }
 }
 
-______("CapsLock & Right", "CapsLock + → ==> 飞扬魔法键盘向右移动（按住Alt到屏幕右侧）")
-______("CapsLock & Numpad6", "CapsLock + 数字键6 ==> 飞扬魔法键盘向右移动（按住Alt到屏幕右侧）")
+______("CapsLock & Right", "CapsLock + →/数字键6 ==> 飞扬魔法键盘向右移动（按住Alt到屏幕右侧）")
 CapsLock & Right:: 
 CapsLock & Numpad6:: 
 {
@@ -128,20 +124,18 @@ CapsLock & Numpad6::
 }
 
 
-______("CapsLock & Up", "CapsLock + ↑ ==> 飞扬魔法键盘↑移动（按住Alt到屏幕顶部）")
-______("CapsLock & Numpad8", "CapsLock + 数字键8 ==> 飞扬魔法键盘向上移动（按住Alt到屏幕顶部）")
+______("CapsLock & Up", "CapsLock + ↑/数字键8 ==> 飞扬魔法键盘↑移动（按住Alt到屏幕顶部）")
 CapsLock & Up:: 
 CapsLock & Numpad8:: 
 {
     if GetKeyState("alt", "P") {
         WinMoveTop(g_winTitle)
-    } else {
+    } else { 
         WinMoveDxDy(g_winTitle, 0, -100)
     }
 }
 
-______("CapsLock & Down", "CapsLock + ↓ ==> 飞扬魔法键盘↓移动（按住Alt到屏幕底部）")
-______("CapsLock & Numpad2", "CapsLock + 数字键2 ==> 飞扬魔法键盘向下移动（按住Alt到屏幕底部）")
+______("CapsLock & Down", "CapsLock + ↓/数字键2 ==> 飞扬魔法键盘↓移动（按住Alt到屏幕底部）")
 CapsLock & Down::
 CapsLock & Numpad2::
 {
@@ -203,7 +197,6 @@ CapsLock & Numpad3::
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-____________("动态生成的Hotkey")
 
 ∑设置热键()
 

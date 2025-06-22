@@ -117,7 +117,117 @@ DragWindow() {
          g_IsVisible := "y"
      }
  }
+
+
+ 切换键盘模态(*) {
+     global g_CurrentModal, KeyboardModal
+     if g_CurrentModal = KeyboardModal.keyboard
+     {
+         
+     }
+ }
  
+SetCurrentModal(modal) {
+    global g_CurrentModal
+    g_CurrentModal := modal
+    WriteTempIni(g_keyBoard, "Modal", modal)
+}
+
+进入键盘模态(*) {
+     global g_CurrentModal, KeyboardModal, _key
+     if g_CurrentModal = KeyboardModal.Keyboard
+     {
+        return
+     } 
+  
+     退出当前模态()
+
+     SetCurrentModal(KeyboardModal.Keyboard)
+
+     ;; 显示当前飞扬键盘
+    for key, btn in _key {
+        if (key != "setting") {
+            btn.Visible  := true
+        }
+    }
+
+    _key["groupbox"].Visible := true
+
+    
+}
+
+ 
+退出键盘模态(*) {
+    global _key
+
+    
+     ;; 显示当前飞扬键盘
+    for key, btn in _key {
+        btn.Visible  := false
+    }
+
+    _key["groupbox"].Visible := false
+}
+
+
+进入输入框模态(*) {
+     global g_CurrentModal, KeyboardModal
+     if g_CurrentModal = KeyboardModal.InputBox
+     {
+        return
+     }
+
+     退出当前模态()
+
+     SetCurrentModal(KeyboardModal.InputBox)
+
+     ;; 显示当前飞扬键盘
+
+
+}
+
+ 
+退出输入框模态(*) {
+
+    
+}
+
+
+进入语音模态(*) {
+     global g_CurrentModal, KeyboardModal
+     if g_CurrentModal = KeyboardModal.Voice
+     {
+        return
+     }
+
+     退出当前模态()
+
+     SetCurrentModal(KeyboardModal.Voice)
+
+     ;; 显示当前飞扬键盘
+}
+
+ 
+退出语音模态(*) {
+}
+
+退出当前模态(*) {
+    global g_CurrentModal
+    if g_CurrentModal = KeyboardModal.Keyboard
+    {
+        退出键盘模态()
+    }
+    else if g_CurrentModal = KeyboardModal.InputBox
+    {
+        退出输入框模态()
+    }
+    else if g_CurrentModal = KeyboardModal.Voice
+    {
+        退出语音模态()
+    }
+}
+
+
 
  
 点击SettingCheckBox(*) {

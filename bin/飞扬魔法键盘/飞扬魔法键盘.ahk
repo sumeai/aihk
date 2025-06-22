@@ -39,6 +39,17 @@ g_HotkeyList := []
 ;; 例如: 1|默认键盘
 g_keyBoard := A_Args.Length > 0 ? A_Args[1] : ""
 
+; 定义键盘模态常量
+KeyboardModal := {
+    Keyboard: 0,    ; 键盘模态
+    InputBox: 1,    ; 输入框模态
+    Voice: 2        ; 语音模态
+}
+
+; 当前模态，默认为键盘模态
+g_CurrentModal := KeyboardModal.Keyboard
+
+
 ; msgbox "g_keyBoard = " g_keyBoard
 
 
@@ -111,6 +122,8 @@ change_icon()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 创建窗口界面（"飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe"）
+____________("动态生成的Hotkey")
+
 
 #Include "./bin/飞扬魔法键盘/GuiCursor.aik"
 
@@ -551,39 +564,6 @@ ChangePicture(ctrl, newImagePath) {
     SendMessage(0x172, 0, hBitmap,, ctrl.Hwnd) ; STM_SETIMAGE
 }
 
-
-切换窗口为键盘模态(*){
-    global _key
-    ; 设置所有按钮透明度为 30%
-    for key, btn in _key {
-        btn.Visible  := true
-    }
-
-    _key["groupbox"].Visible := true
- }
-
-切换窗口为语音模态(*){
-    global _key, g_keyBoard_setpic
-    ; 设置所有按钮透明度为 30%
-    for key, btn in _key {
-        if (key != "ico") {
-            btn.Visible  := false
-        }
-    }
-
-    ; _key["sidepic"].Move(9999, 9999)
-    _key["sidepic"].Visible := false
-
-    ;; _key["sidepic"].Hide()
-    ; DllCall("ShowWindow", "Ptr", _key["sidepic"].Hwnd, "Int", 0) ; 0 = SW_HIDE
-    ; ChangePicture(_key["sidepic"], g_keyBoard_setpic)
-
-    _key["groupbox"].Visible := false
- }
-
-切换窗口为输入模态(*){
-
- }
 
 切换窗口为隐身模态(*){
     显示或隐藏屏幕键盘()
