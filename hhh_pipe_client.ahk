@@ -2,6 +2,12 @@
 #Include .\include\pipe_client.aik
 #Include .\include\tip.aik
 
+; 记录打开过的url和对应的pid
+gUrlPidMap := Map()
+gUrlPosMap := Map()
+gLastOpenUrl := ""
+
+
 ; 初始化日志文件
 logFile := "pipe_client.log"
 if (FileExist(logFile)) {
@@ -35,7 +41,8 @@ if (hPipeServer = -1) {
     ExitApp()
 }
 FileAppend("[" A_Now "] Named pipe created successfully, handle: " hPipeServer "`n", logFile)
-MsgBox "创建ahk_to_server管道成功, 请启动Python创建服务器管道，`n然后再确定准备连接server_to_ahk！"
+
+MsgBox("创建ahk_to_server管道成功, `n`n请启动Python创建服务器管道，`n`n然后再确定准备连接server_to_ahk！", "请启动Python管道服务器")
 
 
 ; hPipeClient := DllCall("CreateFile", "Str", pipe_server_to_ahk, "UInt", 0xC0000000, "UInt", 0, "Ptr", 0, "UInt", 3, "UInt", 0, "Ptr", 0, "Ptr")
@@ -92,20 +99,146 @@ CheckPipe() {
 }
 
 MessageHandler(msg) {
+    global gUrlPosMap
     msgarr := StrSplit(msg, ":")
     cmdtype := msgarr[1]
     message := msgarr[2]
 
-    web_pid := 0
-
     if (cmdtype = "Approve") {
         report_no := Trim(message)
-        url := "https://lims-approve.szswgcjc.com/?reportCode=" report_no "&env=DEV&isRetry=false&o_u_token=9dcbf9915878418c9df5c3aef4010b1b&type=approve"
-        cmd := "chrome.exe --window-position=100,100 --window-size=800,600 --app=" url
-        Run cmd, , , &web_pid
+        ApproveHandler(report_no)
+    } else if (cmdtype = "ApproveList") {
+        ApproveListHandler(message)
+    } else if (cmdType = "Checkbox") {
+        CheckboxSelectHandler(message)
+    }
+}
+
+/**
+ * 打开报告审核助手窗口
+ * Opens a browser window with the approval URL for the given report number.
+ * 
+ * @param report_no The report number to generate the approval URL for
+ * @returns void
+ * @remarks The window will be positioned at (100,100) with size 800x600 if successfully opened
+ */
+ApproveHandler(report_no) {
+    url := "https://192.168.1.70:5173/?reportCode=" report_no "&isRetry=false&company=sanhe"
+
+    web_pid := OpenURLWindow(url)
+    if (web_pid > 0) {
+        if WinWaitActive("ahk_pid " web_pid, , 3) {
+            WinMove 100, 100, 800, 600, "ahk_pid " web_pid
+            gUrlPosMap[url] := (100, 100, 800, 600)
+        }
+    }
+}
+
+
+/**
+ * 打开待审核列表窗口
+ * Processes and opens an approved list URL in a browser window.
+ * 
+ * @param message - The raw message containing the list data
+ * @returns void - Opens a browser window with the processed URL
+ * 
+ * The function:
+ * 1. Cleans and formats the input message
+ * 2. Constructs a URL with the processed data
+ * 3. Opens the URL in a browser window
+ * 4. Positions and remembers the window location
+ */
+ApproveListHandler(message) {
+    
+
+    reportList := Trim(message)
+
+
+    reportList := StrReplace(reportList, "`'", "%22")
+    reportList := StrReplace(reportList, " ", "")
+
+
+    url := "https://192.168.1.70:5173/?listData=" reportList
+
+    ; A_Clipboard := url
+    ; MsgBox "url: " url
+    web_pid := OpenURLWindow(url)
+    if (web_pid > 0) {
+        if WinWaitActive("ahk_pid " web_pid, , 3) {
+            WinMove 500, 500, 800, 500, "ahk_pid " web_pid
+            gUrlPosMap[url] := (500, 500, 800, 500)
+        }
+    }
+}
+
+CheckboxSelectHandler(message) {
+
+}
+
+
+
+/**
+ * Checks if a process with the given PID exists.
+ * @param pid The process ID to check
+ * @returns {Boolean} True if the process exists, false otherwise
+ */
+isPidExist(pid) {
+    ProcessExistResult := DllCall("GetProcessId", "Ptr", pid)
+    if (ProcessExistResult != 0) {
+        return true
+    } else {
+        return false
+    }
+}
+
+CloseAllUrlWindows() {
+    global gUrlPidMap
+    for url, pid in gUrlPidMap {
+        if (isPidExist(pid)) {
+            WinClose "ahk_pid " pid
+        }
+    }
+    gUrlPidMap := Map()
+}
+
+/**
+ * Opens a URL in a Chrome app window, preventing duplicate windows for the same URL.
+ * 
+ * @param url The URL to open in Chrome app mode
+ * @returns The PID of the Chrome process, or 0 if failed
+ * @note Maintains a global map of URL to PID to prevent duplicate windows
+ */
+OpenURLWindow(url) {
+
+    ; 为了防止重复弹出窗口，定义一个MAP记录URL和弹出窗口的WEB_PID。在打开执行下面的弹出窗口之前，检查MAP中是否已经存在该URL，如果存在且WEB_PID还有效，则不弹出窗口，直接返回WEB_PID。
+    global gUrlPidMap, gLastOpenUrl
+    if !IsObject(gUrlPidMap)
+        gUrlPidMap := Map()
+
+    if gUrlPidMap.Has(url) {
+        existing_pid := gUrlPidMap[url]
+        ; 简单检查进程是否存在，实际可能需要更可靠的检测
+        ProcessExistResult := isPidExist(existing_pid)
+        if (ProcessExistResult != 0) {
+            return existing_pid
+        } else {
+            gUrlPidMap.Delete(url)
+        }
     }
 
-    
+    ; 关闭其他打开的窗口
+    CloseAllUrlWindows()
+
+    web_pid := 0
+    cmd := "chrome.exe  --app=" url
+    Run cmd, , , &web_pid
+
+    if (web_pid > 0) {
+        gUrlPidMap[url] := web_pid
+        gLastOpenUrl := url
+    }
+
+    return web_pid
 }
 
 
@@ -143,8 +276,33 @@ SendMessageToPython(msg) {
 
 
 ; 按 F1 发送消息
-F6:: {
+^F6:: {
     SendMessageToPython("Hello from AHK!")
+}
+
+
+; 按 F6 重新打开最近的URL
+F6:: {
+    if gLastOpenUrl {
+        urlPid := gUrlPidMap[gLastOpenUrl]
+        if (urlPid > 0) {
+            if (isPidExist(urlPid) ) {
+                WinActivate "ahk_pid " urlPid
+            } else {
+                web_pid := OpenURLWindow(gLastOpenUrl)
+                gUrlPidMap[gLastOpenUrl] := web_pid
+
+                if (gUrlPosMap.Has(gLastOpenUrl)) {
+                    winPos := gUrlPosMap[gLastOpenUrl]
+                    if WinWaitActive("ahk_pid " web_pid, , 3) {
+                        WinMove winPos[1], winPos[2], winPos[3], winPos[4], "ahk_pid " web_pid
+                    }
+                }
+            }
+        }
+    } else {
+        MsgBox "没有打开的URL"
+    }
 }
 
 
