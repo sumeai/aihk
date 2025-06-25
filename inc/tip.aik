@@ -30,9 +30,21 @@ tipword(string := "无提示内容", var_time := 2000) {
 }
 
 talkshow(var_text := "无提示内容", var_title := "", var_time := 5000) {
+    toast(var_text, var_title, var_time)
+}
+
+/**
+ * Displays a temporary toast notification with optional title and duration.
+ * @param var_text Notification content (default: "无提示内容")
+ * @param var_title Notification title (optional)
+ * @param var_time Display duration in milliseconds (default: 5000)
+ */
+toast(var_text := "无提示内容", var_title := "", var_time := 5000) {
     TrayTip var_title, var_text
     SetTimer RemoveTrayTip, var_time
 }
+
+
 
 RemoveTrayTip() {
     SetTimer RemoveTrayTip, 0

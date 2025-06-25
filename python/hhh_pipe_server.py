@@ -4,6 +4,7 @@ import threading
 import signal
 import sys
 import requests
+import json
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,7 +15,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://39.108.113.242:8000"],
+    allow_origins=["http://39.108.113.242:8000", "https://192.168.1.70:5173","http://oldonline.szswgcjc.com:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,8 +57,6 @@ async def exitapp(report_no: str):
     if report_no == "exit":
         cleanup()
         return JSONResponse(content={"status": "success", "data": "successfully exited"})
-    else:
-        return JSONResponse(content={"status": "failed", "data": "请输入正确的报告编号"})
 
 
 def get_report_no_by_ph_num(ph_num: str):
@@ -100,12 +99,22 @@ async def approve(report_no: str = None, ph_num: str = None):
 
 
 @app.post("/hhh/approve/list")
-async def approve_list(reports: list[str]):
+async def approve_list(reports: list[object]):
     if not reports:
         return JSONResponse(content={"status": "failed", "data": "报告编号列表不能为空"})
     
+    # Convert reports list to JSON string
+    
+    # Convert reports list to JSON string and extract report_no array
+    # reports_json = json.dumps([report for report in reports])
+    reports_array = [report.get('reportNo') for report in reports if isinstance(report, dict) and report.get('reportNo')]
+    # reports_string = json.dumps(reports_array)
+
+
     if not stop_event.is_set():
-        msg = f"ApproveList: {reports}"
+        save_to_db(reports)
+
+        msg = f"ApproveList: {reports_array}"
         re = send_message(pipe_server, msg)
 
         if re == 109:  # 管道已结束
@@ -116,6 +125,39 @@ async def approve_list(reports: list[str]):
     return JSONResponse(content={"status": "failed", "data": "审核未成功"})
 
 
+def save_to_db(reports: list[object]):
+    # reports_array = [report.get('reportNo') for report in reports if isinstance(report, dict) and report.get('reportNo')]
+    # if not reports_array:
+    #     return
+    # payload = {"reportNoList": reports_array}
+
+    try:
+        response = requests.post("http://192.168.1.23:8083/ai/dify/insertSanheAuditList", json=reports)
+        response.raise_for_status()
+
+        print(f"save to DB successfully: {response.text}")
+
+    except requests.RequestException as e:
+        print(f"Failed to save to DB: {e}")
+
+
+@app.post("/hhh/approve/list/check")
+async def approve_list(reports: list[str]):
+    if not reports:
+        return JSONResponse(content={"status": "failed", "data": "报告编号列表不能为空"})
+    
+
+    if not stop_event.is_set():
+
+        msg = f"Checkbox: {reports}"
+        re = send_message(pipe_server, msg)
+
+        if re == 109:  # 管道已结束
+            stop_event.set()
+
+        return JSONResponse(content={"status": "success", "data": msg})
+    
+    return JSONResponse(content={"status": "failed", "data": "审核未成功"})
 
 
 if __name__ == "__main__":

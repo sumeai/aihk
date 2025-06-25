@@ -32,27 +32,17 @@ Pause & /::
 
 ;; 挂起
 ______("+Pause", "Alt+Pause / win + | ==> Suspend挂起暂停热键")
-______("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内容") 
 
 #\::
 #+\::
 +Pause::
 {
-    if (A_IsSuspended) {
-        Suspend false
-    } else {
-        Suspend true
-    }
-}
-
-:*?:;suspend;:: 
-:*?:;zt;:: 
-:*?:;||;:: 
-{
     SwitchSuspend()
 }
 
+
 ______("!Pause", "Alt+Pause ==> 重启启动AiHK")
+______("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内容") 
 
 #Hotif NOT WinExist("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
 ______("Capslock & Space", "Capslock & Space / Appskey ==> 启动飞扬魔法键盘")
@@ -85,6 +75,16 @@ Capslock & /::
 ; #Hotif
 
 #SuspendExempt false
+
+
+______(";suspend;", "输入;suspend; / `;||`; / `;zt`; ==> 重启启动AiHK")
+:*?:;suspend;:: 
+:*?:;zt;:: 
+:*?:;||;:: 
+{
+    SwitchSuspend()
+}
+
 
 
 ______(";reload;", "输入;reload; / Alt+Pause ==> 重启启动AiHK")

@@ -1,6 +1,8 @@
 #Include ./inc/python.aik
 #Include ./inc/pipe_client.aik
 #Include ./inc/tip.aik
+#include ./lib/UIA.ahk
+#include ./lib/UIA_Browser.ahk
 
 ; 记录打开过的url和对应的pid
 gUrlPidMap := Map()
@@ -127,7 +129,8 @@ ApproveHandler(report_no) {
 
     web_pid := OpenURLWindow(url)
     if (web_pid > 0) {
-        if WinWaitActive("ahk_pid " web_pid, , 3) {
+        gUrlPidMap[url] := web_pid
+        if WinWait("ahk_pid " web_pid, , 3) {
             WinMove 100, 100, 800, 600, "ahk_pid " web_pid
             gUrlPosMap[url] := (100, 100, 800, 600)
         }
@@ -149,11 +152,9 @@ ApproveHandler(report_no) {
  * 4. Positions and remembers the window location
  */
 ApproveListHandler(message) {
-    
+    CloseAllUrlWindows()
 
     reportList := Trim(message)
-
-
     reportList := StrReplace(reportList, "`'", "%22")
     reportList := StrReplace(reportList, " ", "")
 
@@ -164,18 +165,99 @@ ApproveListHandler(message) {
     ; MsgBox "url: " url
     web_pid := OpenURLWindow(url)
     if (web_pid > 0) {
-        if WinWaitActive("ahk_pid " web_pid, , 3) {
-            WinMove 500, 500, 800, 500, "ahk_pid " web_pid
-            gUrlPosMap[url] := (500, 500, 800, 500)
-        }
+        ; gUrlPidMap[url] := web_pid
+        ; if WinWait("ahk_pid " web_pid, , 3) {
+        ;     WinMaximize("ahk_pid " web_pid)
+        ;     ; WinMove 500, 500, 800, 500, "ahk_pid " web_pid
+        ;     gUrlPosMap[url] := (0, 0, A_ScreenWidth, A_ScreenHeight)
+        ; }
+        WinWait("AI审批助手")
+        if WinExist("AI审批助手 ahk_exe msedge.exe")
+            WinMaximize
+
+        if WinExist("AI审批助手 ahk_exe chrome.exe")
+            WinMaximize   
     }
 }
 
-CheckboxSelectHandler(message) {
+CheckboxSelectHandler(reports) {
+    jsCode := getCheckJS(reports)
+    ; MsgBox "getCheckJS: " jsCode
 
+    try {
+        browser := UIA_Browser("建设工程质量检测机构管理系统 ahk_exe chrome.exe")
+        browser.JSExecute(jsCode)
+        CloseAllUrlWindows()
+    } catch Error as e {
+        MsgBox("操作失败: " e.Message)
+    }
 }
 
 
+getCheckJS(reports){
+    jsCode := '
+(
+(function () {
+    function simulateClick(el) {
+        const events = ['mousedown', 'mouseup', 'click'];
+        for (const type of events) {
+            el.dispatchEvent(
+                new MouseEvent(type, {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                }));
+        }    
+    }  
+
+  var reportCodeArr = {};
+  var matchIndexes = [];
+
+  document.querySelectorAll('div').forEach(parentDiv => {
+    const childDivs = Array.from(parentDiv.children).filter(el => el.tagName === 'DIV');
+
+    const hasZIndex2000 = childDivs.some(div => {
+      const zIndex = window.getComputedStyle(div).zIndex;
+      return zIndex === '2000';
+    });
+
+    if (hasZIndex2000 && childDivs.length >= 2) {
+      console.log('找到符合条件的父 div:', parentDiv);
+
+      const secondChildDiv = childDivs[1]; 
+
+      Array.from(secondChildDiv.children).forEach((grandchild, index) => {
+        const firstInnerDiv = Array.from(grandchild.children).find(el => el.tagName === 'DIV');
+        if (firstInnerDiv) {
+          const text = firstInnerDiv.textContent.trim();
+          if (text && reportCodeArr.includes(text)) {
+            console.log("匹配项: ${text}，下标: ${index}");
+            matchIndexes.push(index);
+          }
+        }
+      });
+
+      const checkboxes = Array.from(parentDiv.querySelectorAll('div')).filter(div => {
+        const bg = window.getComputedStyle(div).backgroundImage;
+        return bg.includes('903dd6ca.png') || bg.includes('3655dc8d.png');
+      });
+
+      console.log('所有符合条件的 checkbox 数组:', checkboxes);
+
+      matchIndexes.forEach(index => {
+        const targetCheckbox = checkboxes[index];
+        if (targetCheckbox) {
+          console.log("模拟点击 checkbox 下标: ${index}", targetCheckbox);
+          simulateClick(targetCheckbox);
+        }
+      });
+    }
+  });        
+
+})();
+)'
+    return Format(jsCode, reports)
+}
 
 /**
  * Checks if a process with the given PID exists.
@@ -183,8 +265,7 @@ CheckboxSelectHandler(message) {
  * @returns {Boolean} True if the process exists, false otherwise
  */
 isPidExist(pid) {
-    ProcessExistResult := DllCall("GetProcessId", "Ptr", pid)
-    if (ProcessExistResult != 0) {
+    if WinExist("ahk_pid " pid){
         return true
     } else {
         return false
@@ -198,6 +279,12 @@ CloseAllUrlWindows() {
             WinClose "ahk_pid " pid
         }
     }
+    if WinExist("AI审批助手 ahk_exe msedge.exe")
+        WinClose
+
+    if WinExist("AI审批助手 ahk_exe chrome.exe")
+        WinClose
+
     gUrlPidMap := Map()
 }
 
@@ -230,7 +317,7 @@ OpenURLWindow(url) {
     CloseAllUrlWindows()
 
     web_pid := 0
-    cmd := "chrome.exe  --app=" url
+    cmd := "msedge.exe  --app=" url
     Run cmd, , , &web_pid
 
     if (web_pid > 0) {
@@ -283,7 +370,7 @@ SendMessageToPython(msg) {
 
 ; 按 F6 重新打开最近的URL
 F6:: {
-    if gLastOpenUrl {
+    if gLastOpenUrl and gUrlPidMap.Has(gLastOpenUrl) {
         urlPid := gUrlPidMap[gLastOpenUrl]
         if (urlPid > 0) {
             if (isPidExist(urlPid) ) {
