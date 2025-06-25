@@ -1,4 +1,4 @@
-﻿#include ../include/switch_keyboad.ahk
+﻿#include ../inc/switch_keyboad.ahk
 
 ; 定义全局变量
 global isCapsLockDown := false

@@ -571,13 +571,13 @@ ChangePicture(ctrl, newImagePath) {
 
  
 
- #Include "./include/common.aik"
- #Include "./include/inifile.aik"
- ; #Include "./include/tip.aik"
- #Include "./include/string.aik"
- #Include "./include/cmdstring.aik"
- #Include  "./include/hotkey_manage.aik"
- ; #Include "./include/run.aik"
+ #Include "./inc/common.aik"
+ #Include "./inc/inifile.aik"
+ ; #Include "./inc/tip.aik"
+ #Include "./inc/string.aik"
+ #Include "./inc/cmdstring.aik"
+ #Include  "./inc/hotkey_manage.aik"
+ ; #Include "./inc/run.aik"
  ; #Include "./lib/autolable.aik"
  #Include "./subui/23编辑飞扬命令串.aik"
  #Include "./subui/22InputListBox.aik"

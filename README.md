@@ -92,7 +92,7 @@ aihk/
 │       ├── feishu.ahk    # 飞书快捷键
 │       ├── gvim.ahk      # GVim 快捷键
 │       └── vscode.ahk    # VSCode 快捷键
-├── include/              # 通用功能库
+├── inc/              # 通用功能库
 ├── bin/                  # 可执行文件和资源
 └── SubUI/                # 用户界面组件
 ```

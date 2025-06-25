@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-#Include "../include/JSON.ahk"
-#Include "../include/inifile.aik"
+#Include "../lib/JSON.ahk"
+#Include "../inc/inifile.aik"
 
 tempini_file := A_Args.Length > 0 ? A_Args[1] : "temp.ini"
 g_title := A_Args.Length > 1 ? A_Args[2] : ""

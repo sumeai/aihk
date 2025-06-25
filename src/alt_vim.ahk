@@ -1,4 +1,4 @@
-﻿#include ../include/clipboard.ahk
+﻿#include ../inc/clipboard.ahk
 
 <!h::send "{left}"
 <!l::send "{right}"

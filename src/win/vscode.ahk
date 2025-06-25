@@ -1,4 +1,4 @@
-﻿#include ../../include/clipboard.ahk
+﻿#include ../../inc/clipboard.ahk
 
 
 arroundwith(_left, _right)

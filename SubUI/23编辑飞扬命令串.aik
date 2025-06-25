@@ -1,6 +1,6 @@
-#Include ../include/tip.aik
-#include ../include/cmdString.aik
-#Include ../include/inifile.aik
+#Include ../inc/tip.aik
+#include ../inc/cmdString.aik
+#Include ../inc/inifile.aik
 
 【复制编辑飞扬命令串】()
 {

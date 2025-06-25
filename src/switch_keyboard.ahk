@@ -1,7 +1,7 @@
-﻿#include ../include/system_cursor.ahk
-#include ../include/switch_keyboad.ahk
-#Include ../include/hotkey_manage.aik
-#Include ../include/tip.aik
+﻿#include ../inc/system_cursor.ahk
+#include ../inc/switch_keyboad.ahk
+#Include ../inc/hotkey_manage.aik
+#Include ../inc/tip.aik
 
 ;; 切换英文输入法
 ______("::;e::", "输入;e ==> 切换英文输入法")

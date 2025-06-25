@@ -5,7 +5,7 @@
 #Requires AutoHotkey v2.0
 
 #Include  path.aik
-#Include  JSON.ahk
+#Include  ../lib/JSON.ahk
 #Include  inifile.aik
 
 ; g_HotkeyList := []

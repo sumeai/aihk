@@ -157,8 +157,8 @@ ______("::;ahksrc::", "打开 AiHK/src 文件夹 " )
 #include ./src/win/gvim.ahk
 #include ./src/win/feishu.ahk
 #include ./src/win/vscode.ahk
-#include ./include/path.aik
-#Include  "./include/hotkey_manage.aik"
+#include ./inc/path.aik
+#Include  "./inc/hotkey_manage.aik"
 
 SwitchSuspend()
 {
