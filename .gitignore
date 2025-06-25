@@ -9,10 +9,11 @@ test.py
 test.txt
 Thumbs.db
 temp.ini
+.vscode/*
+aihk_run.ahk
 tempscript.ahk
-./aihk_run.ahk
+aihk_run.ahk
+bin/飞扬魔法键盘/temp.ini
 /user/*
 !/user/default
 /python/__pycache__/*
-bin/飞扬魔法键盘/temp.ini
-aihk_run.ahk
