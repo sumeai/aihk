@@ -579,5 +579,5 @@ ChangePicture(ctrl, newImagePath) {
  #Include  "./inc/hotkey_manage.aik"
  ; #Include "./inc/run.aik"
  ; #Include "./lib/autolable.aik"
- #Include "./subui/23编辑飞扬命令串.aik"
- #Include "./subui/22InputListBox.aik"
+ #Include "./gui/23编辑飞扬命令串.aik"
+ #Include "./gui/22InputListBox.aik"

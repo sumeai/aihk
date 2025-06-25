@@ -17,7 +17,7 @@
  */
 
 ; #include ./inc/xml/hotxstring.aik
-; #include ./SubUI/26为飞扬个性输入添加短语.aik
+; #include ./gui/26为飞扬个性输入添加短语.aik
 ;#include ..\..\
 ;#include .\inc\string.aik
 

@@ -1,6 +1,6 @@
-#Include .\include\python.aik
-#Include .\include\pipe_client.aik
-#Include .\include\tip.aik
+#Include ./inc/python.aik
+#Include ./inc/pipe_client.aik
+#Include ./inc/tip.aik
 
 ; 记录打开过的url和对应的pid
 gUrlPidMap := Map()

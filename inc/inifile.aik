@@ -1,6 +1,6 @@
 #Include common.aik
 #Include string.aik
-#Include ..\SubUI\20MuiltiBox.aik
+#Include ..\gui/20MuiltiBox.aik
 
 ;; 读写ini文件
 read_ini(Filename_, Section_, Key_, Default_ := "") {

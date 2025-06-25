@@ -112,7 +112,7 @@ ShowHotkeyList(title_) {
     columsStr := JSON.Dump(ListViewColums)
     IniWrite columsStr, tempini_file, "HotkeyList", "ColumsArray"
 
-    cmdline := get_root() "/SubUI/24ListViewBox.ahk  "  tempini_file
+    cmdline := get_root() "/gui/24ListViewBox.ahk  "  tempini_file
     if (title_ != ""){
         cmdline .= " " title_
     }
