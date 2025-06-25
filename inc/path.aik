@@ -30,8 +30,9 @@ get_script_root() {
 
         if FileExist(g_root "\aihk.ahk")
             if FileExist(g_root "\bin")
-                if FileExist(g_root "\SubUI")
-                    return g_root
+                if FileExist(g_root "\gui")
+                    if FileExist(g_root "\lib")
+                        return g_root
 
         SplitPath(g_root, , &g_root) ; 向上一级
     }

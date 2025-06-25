@@ -10,10 +10,7 @@ change_icon("aihk.png")
 g_root := ""
 g_HotkeyList := []
 
-#include ./src/alt_vim.ahk
-#include ./src/switch_keyboard.ahk
-#include ./src/capslock.ahk
-#include ./src/360se.ahk
+
 
 ;; 以下快捷键在suspend状态下依然生效
 #SuspendExempt true
@@ -26,7 +23,7 @@ Pause & Esc::
 }
 
 ;; 显示当前定义的Hotkey和HotString
-______("Pause & /", "Pause + ? 或 win + ? ==> 【帮助】显示AiHk所有的热键")
+______("Pause & /", "Pause + ? / win + ? ==> 【帮助】显示AiHk所有的热键")
 #/::
 Pause & /::
 {
@@ -34,7 +31,9 @@ Pause & /::
 }
 
 ;; 挂起
-______("+Pause", "Alt+Pause 或 win + | ==> Suspend挂起暂停热键")
+______("+Pause", "Alt+Pause / win + | ==> Suspend挂起暂停热键")
+______("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内容") 
+
 #\::
 #+\::
 +Pause::
@@ -53,10 +52,10 @@ ______("+Pause", "Alt+Pause 或 win + | ==> Suspend挂起暂停热键")
     SwitchSuspend()
 }
 
+______("!Pause", "Alt+Pause ==> 重启启动AiHK")
+
 #Hotif NOT WinExist("飞扬魔法键盘 ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe")
-______("*Appskey", "启动飞扬魔法键盘")
-______("Capslock & Space", "启动飞扬魔法键盘")
-______("::;jp;::", "输入;jp;或;aik; ==> 启动飞扬魔法键盘")
+______("Capslock & Space", "Capslock & Space / Appskey ==> 启动飞扬魔法键盘")
 Capslock & Space::
 appskey::
 :?*:;jp;::
@@ -70,8 +69,7 @@ appskey::
 }
 
 ;; 显示当前定义的Hotkey和HotString
-______("Capslock & ?", "显示AiHK所有的热键")
-______("右Ctrl + 左Ctrl + ?", "显示AiHK所有的热键")
+______("Capslock & /", "Capslock + ? / 右Ctrl + 左Ctrl + ? ==> 显示AiHK所有的热键")
 Capslock & /::
 >^<^/::
 {
@@ -89,8 +87,7 @@ Capslock & /::
 #SuspendExempt false
 
 
-______("!Pause", "Alt+Pause ==> 重启启动AiHK")
-______("::;reload;::", "输入;reload; ==> 重启启动AiHK")
+______(";reload;", "输入;reload; / Alt+Pause ==> 重启启动AiHK")
 :*?:;reload;:: 
 !Pause:: 
 {
@@ -105,7 +102,9 @@ ______("::;reload;::", "输入;reload; ==> 重启启动AiHK")
     ExitApp
 }
 
-______("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内容 ") 
+______(";run;", "输入`;run; / Win+Pause ==> 使用AHK临时执行输入的内容") 
+:?*:;run;::
+:?*:;run ::
 #Pause:: 
 {
     IB := InputBox("临时运行以下AHK脚本", "运行AHK脚本", "w600 h120", A_Clipboard)
@@ -127,32 +126,38 @@ ______("#Pause", "Win+Pause ==> 使用AHK临时执行输入的内容 ")
     }
 }
 
+______(";jp;", "输入;jp; / `;aik; ==> 启动飞扬魔法键盘")
+
 ;:*:ahkhelp2;::run 'https://www.autohotkey.com/docs/v2/index.htm'
-______("::;ahkhelp::", "打开AutoHotkey帮助文档")
+______(";ahkhelp;", "打开AutoHotkey帮助文档")
 :?*:;ahkhelp;::
 {
     run StrReplace(a_ahkpath, "64.exe", ".chm")
 }
 
-______("::;ahkspy::", "打开AutoHotkey Spy 查看窗口信息")
+______(";ahkspy;", "打开AutoHotkey Spy 查看窗口信息")
 :?*:;ahkspy;::
 {
     SplitPath a_ahkpath, &name, &dir, &ext, &name_no_ext, &drive 
     run StrReplace(dir, "v2", "WindowSpy.ahk")
 }
 
-______("::;ahkroot::", "打开 AiHK 根文件夹")
+______(";ahkroot;", "打开 AiHK 根文件夹")
 :?*:;ahkroot;::
 {
     run A_scriptDir
 }
 
-______("::;ahksrc::", "打开 AiHK/src 文件夹 " )
+______(";ahksrc;", "打开 AiHK/src 文件夹" )
 :?*:;ahksrc;::
 {
     run A_scriptDir . "/src"
 }
 
+#include ./src/alt_vim.ahk
+#include ./src/switch_keyboard.ahk
+#include ./src/capslock.ahk
+#include ./src/360se.ahk
 
 #include ./src/win/gvim.ahk
 #include ./src/win/feishu.ahk
