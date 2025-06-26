@@ -124,6 +124,52 @@ PythonRun(python_script) {
     }
 
     python_pid := 0
-    Run(python_path . " " . python_script, "", "", &python_pid)
+    cmdStr := python_path . " " . python_script
+    Run(cmdStr, "", "", &python_pid)
     return python_pid
+}
+
+
+; 自定义 RunHidden 函数，使用 CreateProcess 隐藏窗口
+RunHidden(command) {
+    ; 创建 STARTUPINFO 缓冲区 (64位: 104 字节，32位: 68 字节)
+    startupInfo := Buffer(A_PtrSize = 8 ? 104 : 68)
+    NumPut("Int", startupInfo.Size, startupInfo)      ; cb (结构大小)
+    NumPut("UInt", 0x1, startupInfo, A_PtrSize)      ; dwFlags = STARTF_USESHOWWINDOW
+    NumPut("UInt", 0, startupInfo, A_PtrSize + 4)    ; wShowWindow = SW_HIDE
+
+    ; 创建 PROCESS_INFORMATION 缓冲区 (64位: 32 字节，32位: 16 字节)
+    processInfo := Buffer(A_PtrSize = 8 ? 32 : 16)
+
+    ; 调用 CreateProcess
+    try {
+        success := DllCall("CreateProcess",
+        "Ptr", 0,                    ; lpApplicationName (NULL 使用命令行)
+        "Str", command,              ; lpCommandLine
+        "Ptr", 0,                    ; lpProcessAttributes
+        "Ptr", 0,                    ; lpThreadAttributes
+        "Int", 0,                    ; bInheritHandles
+        "UInt", 0x08000000,          ; dwCreationFlags = CREATE_NO_WINDOW
+        "Ptr", 0,                    ; lpEnvironment
+        "Ptr", 0,                    ; lpCurrentDirectory (NULL 使用当前目录)
+        "Ptr", startupInfo.Ptr,      ; lpStartupInfo
+        "Ptr", processInfo.Ptr,      ; lpProcessInfo
+        "Int")
+
+        if (success) {
+            pid := NumGet(processInfo.Ptr + A_PtrSize, "UInt")  ; 获取进程 ID
+            return pid
+        } else {
+            ; 记录错误信息
+            errorCode := A_LastError
+            MsgBox "CreateProcess 失败。`n错误码: " . errorCode . "`n命令: " . command
+            return 0
+        }        
+    } catch Error as e {
+        MsgBox "CreateProcess 异常: "  e.Message
+        return 0
+    }
+
+
+
 }

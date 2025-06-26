@@ -7,8 +7,11 @@
 ; 记录打开过的url和对应的pid
 gUrlPidMap := Map()
 gUrlPosMap := Map()
+gUrlTypeMap := Map()
 gLastOpenUrl := ""
 
+ACTIVE_PROFILE := IniRead("./python/hhh.ini", "settings", "activactivee_profile", "dev")
+WEB_SERVER := IniRead("./python/hhh.ini", ACTIVE_PROFILE, "web_server", "https://192.168.1.70:5173")
 
 ; 初始化日志文件
 logFile := "pipe_client.log"
@@ -44,40 +47,48 @@ if (hPipeServer = -1) {
 }
 FileAppend("[" A_Now "] Named pipe created successfully, handle: " hPipeServer "`n", logFile)
 
-MsgBox("创建ahk_to_server管道成功, `n`n请启动Python创建服务器管道，`n`n然后再确定准备连接server_to_ahk！", "请启动Python管道服务器")
-
-
-; hPipeClient := DllCall("CreateFile", "Str", pipe_server_to_ahk, "UInt", 0xC0000000, "UInt", 0, "Ptr", 0, "UInt", 3, "UInt", 0, "Ptr", 0, "Ptr")
-; if (hPipeClient = -1) {
-;     ; 连接服务器管道失败，则尝试调用python创建服务器管道，然后再重度连接
-;     try {
-;         python_pid := PythonRun("./python/hhh_pipe_server.py") 
-;         MsgBox "Python pid:" python_pid
-;     } catch as e {
-;         MsgBox("Failed to start Python script: " . e.Message)
-;         ExitApp()
-;     }
-
-
-;     ; 尝试连接到 Python 的管道 (server_to_ahk) 并重试
-;     hPipeClient := ConnectServerPipe(pipe_server_to_ahk) 
-;     if (hPipeClient = -1) {
-;         DllCall("CloseHandle", "Ptr", hPipeServer)
-;         ProcessClose(python_pid)
-;         ExitApp()
-;     }
-    
-; }
+; MsgBox("创建ahk_to_server管道成功, `n`n请启动Python创建服务器管道，`n`n然后再确定准备连接server_to_ahk！", "请启动Python管道服务器")
 
 ; 尝试连接到 Python 的管道 (server_to_ahk) 并重试
 FileAppend("[" A_Now "] Attempting to connect to server pipe: " pipe_server_to_ahk "`n", logFile)
-hPipeClient := ConnectServerPipe(pipe_server_to_ahk) 
+; hPipeClient := ConnectServerPipe(pipe_server_to_ahk) 
+; if (hPipeClient = -1) {
+    ; 连接服务器管道失败，则尝试调用python创建服务器管道，然后再重度连接
+    try {
+        ; python_pid := PythonRun("./python/hhh_pipe_server.py") 
+        cmdStr := "python ./python/hhh_pipe_server.py"
+        Run(cmdStr, "", "", &python_pid)
+        ; python_pid := RunHidden(cmdStr)
+        var_title := "ahk_pid " python_pid
+        WinWait(var_title, , 3)
+            WinMinimize
+        ; MsgBox "Python pid:" python_pid
+    } catch as e {
+        MsgBox("Failed to start Python script: " . e.Message)
+        ExitApp()
+    }
+
+
+    ; 尝试连接到 Python 的管道 (server_to_ahk) 并重试
+    hPipeClient := ConnectServerPipe(pipe_server_to_ahk) 
+    if (hPipeClient = -1) {
+        DllCall("CloseHandle", "Ptr", hPipeServer)
+        ProcessClose(python_pid)
+        ExitApp()
+    }
+    
+; }
+
+
+; hPipeClient := ConnectServerPipe(pipe_server_to_ahk) 
 if (hPipeClient = -1) {
     FileAppend("[" A_Now "] Failed to connect to pipe: " pipe_server_to_ahk "`n", logFile)
     MsgBox "退出AHK程序，Failed to connect to pipe \\.\pipe\server_to_ahk."
     DllCall("CloseHandle", "Ptr", hPipeServer)
     ExitApp()
 }
+
+
 FileAppend("[" A_Now "] Successfully connected to server pipe, handle: " hPipeClient "`n", logFile)
 
 ; 定时检查 Python 的消息
@@ -125,7 +136,8 @@ MessageHandler(msg) {
  * @remarks The window will be positioned at (100,100) with size 800x600 if successfully opened
  */
 ApproveHandler(report_no) {
-    url := "https://192.168.1.70:5173/?reportCode=" report_no "&isRetry=false&company=sanhe"
+    url := WEB_SERVER "/?reportCode=" report_no "&isRetry=false&company=sanhe"
+    gUrlTypeMap[url] := "Approve"
 
     web_pid := OpenURLWindow(url)
     if (web_pid > 0) {
@@ -159,10 +171,13 @@ ApproveListHandler(message) {
     reportList := StrReplace(reportList, " ", "")
 
 
-    url := "https://192.168.1.70:5173/?listData=" reportList
+    url := WEB_SERVER "/?listData=" reportList
+    gUrlTypeMap[url] := "ApproveList"
 
     ; A_Clipboard := url
     ; MsgBox "url: " url
+        ; 关闭其他打开的窗口
+
     web_pid := OpenURLWindow(url)
     if (web_pid > 0) {
         ; gUrlPidMap[url] := web_pid
@@ -313,9 +328,6 @@ OpenURLWindow(url) {
         }
     }
 
-    ; 关闭其他打开的窗口
-    CloseAllUrlWindows()
-
     web_pid := 0
     cmd := "msedge.exe  --app=" url
     Run cmd, , , &web_pid
@@ -392,6 +404,11 @@ F6:: {
     }
 }
 
+F7:: {
+    if WinExist("ahk_pid" python_pid) {
+        WinMove 100, 100
+    } 
+}
 
 :*?:;exitpipe;::
 F4:: {

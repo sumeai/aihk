@@ -5,21 +5,15 @@ import signal
 import sys
 import requests
 import json
+from load_hhh_config import read_hhh_config
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pipe_server import *
 
+
 app = FastAPI()
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://39.108.113.242:8000", "https://192.168.1.70:5173","http://oldonline.szswgcjc.com:8000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Named pipe names
 pipe_server_to_ahk = r'\\.\pipe\server_to_ahk'
@@ -27,6 +21,26 @@ pipe_ahk_to_server = r'\\.\pipe\ahk_to_server'
 
 # Global flag to control thread termination
 stop_event = threading.Event()
+
+# Read active status from config file
+config = read_hhh_config()
+
+HHH_SERVER = config["hhh_server"]
+AI_COMMON_SERVER = config["ai_common_server"]
+ALLOW_ORIGINS = config["allow_origins"]
+
+# Parse allowed origins from config into array
+allow_origin_array = [origin.strip() for origin in ALLOW_ORIGINS.split(',')] if ALLOW_ORIGINS else []
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origin_array,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def signal_handler(sig, frame):
     print("\nReceived termination signal, shutting down...")
@@ -61,7 +75,7 @@ async def exitapp(report_no: str):
 
 def get_report_no_by_ph_num(ph_num: str):
     try:
-        response = requests.get(f"http://192.168.1.240:31112/hhh/phnum2report?ph_num={ph_num}", timeout=15)
+        response = requests.get(f"{HHH_SERVER}/hhh/phnum2report?ph_num={ph_num}", timeout=15)
         if response.status_code == 200:
             data = response.json()
             result = data.get('data')
@@ -132,7 +146,7 @@ def save_to_db(reports: list[object]):
     # payload = {"reportNoList": reports_array}
 
     try:
-        response = requests.post("http://192.168.1.23:8083/ai/dify/insertSanheAuditList", json=reports)
+        response = requests.post(f"{AI_COMMON_SERVER}/ai/dify/insertSanheAuditList", json=reports)
         response.raise_for_status()
 
         print(f"save to DB successfully: {response.text}")
@@ -170,6 +184,8 @@ if __name__ == "__main__":
     if not pipe_server:
         sys.exit(1)
     
+    print("========== server_to_ahk pipe created. ===========")
+    
     # Connect to AHK's pipe (ahk_to_server)
     pipe_client = connect_to_pipe(pipe_ahk_to_server)
     if not pipe_client:
@@ -179,6 +195,7 @@ if __name__ == "__main__":
     # 启动监听线程
     listen_thread = threading.Thread(target=listen_for_messages, args=(pipe_client, pipe_ahk_to_server, stop_event), daemon=True)
     listen_thread.start()
+    print("========== listen_for_messages. ===========")
     
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=12701)

@@ -67,6 +67,7 @@ ConnectServerPipe(pipe_server_to_ahk) {
             attempt++
             ToolTip "Connect pipe  server_to_ahk. Failed:: " . attempt . " of " . max_retries . "."
             Sleep(retry_delay)
+            ToolTip
         }
     }
     if (hPipeClient = -1) {
