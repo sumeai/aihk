@@ -21,6 +21,8 @@
 g_version := "V2.00"
 g_bRightMenu := ""
 g_root := ""
+g_bSuspend := false     ;; 是否挂起
+g_bSetting := false     ;; 是否设置状态
 
 g_title := "飞扬魔法键盘"
 g_winTitle := g_title " ahk_class AutoHotkeyGUI ahk_exe AutoHotkey64.exe"
@@ -458,7 +460,7 @@ return
 ∑空格按钮提示(var_tip) {
     global _key
     _key["space"].Text := var_tip
-    SetTimer 定时清除空格按钮提示, -1000
+    SetTimer 定时清除空格按钮提示, -2000
     }
        
 
@@ -524,7 +526,7 @@ TipCmdString(cmdstr_) {
  }
  
 定时清除空格按钮提示(*) {
-     ∑修改按键按钮的标题(∑获取当前键盘名称(), "Space")
+     ∑修改按键按钮的标题(∑获取当前键盘名称(), "space", "Space")
  }
  
 切换到默认键盘(*) {

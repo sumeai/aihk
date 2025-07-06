@@ -60,6 +60,7 @@ myGui.BackColor := TransColor
 myGui.TransColor := TransColor
 
 _key := Map()               ;; 存储所有的按钮对象
+_keytip := Map()            ;; 存储自定义功能的按钮对象的tip说明
 _ctrlInfo := Map()          ;; 存储所有的按钮对象的初始化信息
 _keyNameArray := Array()    ;; 存储所有的按钮对象的Text
 
@@ -197,8 +198,8 @@ _key["exit"].OnEvent("Click", 退出)
 
 myGui.SetFont("s10 norm")
 var_temp := 6 * k_KeyMargin
-_key["setting"] := myGui.Add("Checkbox", ctrl_position("setting", Format("x200 y100 h{} c{} ", var_temp, k_KeyHeight, g_keyBoard_color)) " Hidden" , "■")
-_key["setting"].OnEvent("Click", 点击SettingCheckBox)
+; _key["setting"] := myGui.Add("Checkbox", ctrl_position("setting", Format("x200 y100 h{} c{} ", var_temp, k_KeyHeight, g_keyBoard_color)) " Hidden" , "■")
+; _key["setting"].OnEvent("Click", 点击SettingCheckBox)
 
 myGui.SetFont("s9 norm")
 width := k_KeyWidth - 1
@@ -255,7 +256,7 @@ for key, value in _key
 
 _keyClickArray := [
     "f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12",
-    "1","2","3","4","5","6","7","8","9","0","sub","equal",
+    "tilde","1","2","3","4","5","6","7","8","9","0","sub","equal",
     "q","w","e","r","t","y","u","i","o","p","lf","rf","fxg",
     "a","s","d","f","g","h","j","k","l","mh","dyh",
     "z","x","c","v","b","n","m","dh","jh","xg"
@@ -268,6 +269,19 @@ _keyClickArray2 := [
     "space"
 ]
 
+;; 其他控制按钮
+_keyCtrlArray := [
+    "ctrl",
+    "win",
+    "alt",
+    "hide",
+    "exit",
+    "btn_setting",
+    "title",
+    "capslock",
+    "shift"
+]
+
 for index, value in _keyClickArray {
      _key[value].OnEvent("Click", ClickButtonHandle)
 
@@ -276,10 +290,16 @@ for index, value in _keyClickArray {
      {
         _key[value].SetFont("bold")
         _key[value].OnEvent("Focus", FocusButtonHandle)
-
+ 
         if (g_keyBoard != "默认键盘") {
             k_char := ValnameToKeyname(value)
             var_tip := GetCmdStringTip(cmdstr)
+
+            ;; 将自定义的按钮添加到全局变量 _cmdkey
+            _keytip[value] := var_tip
+
+
+            ;; 设置按钮的Hotkey
             discription :=  "响应【" value "】按键 ==> " var_tip
             RegisterHotkey("*" value, 按键响应, discription, "On" )
             Hotkey "~*" value " up", 响应按键释放, "On" 
@@ -348,3 +368,28 @@ if (k_WindowY < 0) {
 
 WinMove k_WindowX, k_WindowY
 
+
+; 使用定时器检测鼠标位置
+SetTimer(CheckMouseHover, 500)
+
+CheckMouseHover() {
+    global g_winTitle
+    static lastCtrl := ""
+    ; 检查 MyGui 是否为活动窗口
+    if WinActive(g_winTitle) {
+        MouseGetPos(,, &Win, &Ctrl)  ; 获取鼠标位置和控件
+        if (Ctrl != lastCtrl && Ctrl != "") {
+            try {
+                CtrlHwnd := ControlGetHwnd(Ctrl, g_winTitle)
+
+                for key, tip in _keytip {
+                    btn := _key[key]
+                    if (btn.Hwnd == CtrlHwnd and tip != "") {
+                        ∑空格按钮提示(key " >> " tip)
+                    }
+                }
+            }
+        }
+        lastCtrl := Ctrl  ; 更新最后检测的控件
+    } 
+}

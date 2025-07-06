@@ -39,8 +39,11 @@ capslock & esc:: 退出()
 
 ;; 挂起
 ______("Capslock & Space", "Capslock/AppsKey + Space ==> Suspend 暂停快捷键")
-Capslock & Space::  Suspend
-AppsKey & Space::  Suspend
+Capslock & Space::  
+AppsKey & Space::  
+{
+    mySuspend()
+}
 
 
 ;; 使用 AppsKey & e 切换编辑状态
@@ -226,8 +229,7 @@ CapsLock & Numpad3::
      if WinActive("新增键盘")
          return
      myGui.Submit(false)
-     if _key["setting"]
-         return
+
      if g_keyBoard_name = "默认键盘"
      {
          LShift按键响应()
@@ -348,7 +350,7 @@ LShift按键响应() {
      if WinActive("新增键盘")
          return
      myGui.Submit(false)
-     if !_key["setting"].value  and WinExist("ahk_id " k_ID)
+     if !g_bSetting  and WinExist("ahk_id " k_ID)
      {
          g_ThisHotkey := SubStr(A_ThisHotkey, 4)
          ControlClick g_ThisHotkey, "ahk_id " k_ID, "", "LEFT", 1, "D"
@@ -422,7 +424,7 @@ AppsKeyHandle(*){
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  ∑鼠标单击按键(key_, bForce := false) {
 
-     global g_keyBoard, _key, k_ID, g_bAutoPressBtn, g_bShiftDown
+     global g_keyBoard, _key, k_ID, g_bAutoPressBtn, g_bShiftDown, g_bSetting
      if !bForce
      {
          MouseGetPos &OutputVarX, &OutputVarY, &OutputVarWin, &OutputVarControl, 1
@@ -448,7 +450,7 @@ AppsKeyHandle(*){
          else
              var_key := "+" var_key
      }
-     if _key["setting"].Value
+     if g_bSetting
      {
          if g_bAutoPressBtn
              ∑编辑按键(var_key)
@@ -512,4 +514,81 @@ saveCtrlProps(_ctrlInfo) {
         IniWrite dataStr, g_inifile, "CtrlPosition", key
     }
 
+}
+
+
+mySuspend(NewState := -1){
+    global g_bSuspend, _keytip, _key, g_winTitle
+    if NewState == -1
+        g_bSuspend := !g_bSuspend
+    else
+        g_bSuspend := NewState
+
+    if g_bSuspend {
+        ;; 进入暂停状态
+        Suspend 1
+        
+        
+        for key, tip in _keytip {
+            btn := _key[key]
+            setBtnEnable(btn, false)
+        }
+
+        for index, value in _keyClickArray2 {  
+            btn := _key[value]
+            setBtnEnable(btn, false)
+        }
+
+        for index, value in _keyCtrlArray {
+            if (value != "exit"){
+                btn := _key[value]
+                setBtnEnable(btn, false)
+            }
+        }
+        
+       
+        
+    } else {
+        ;; 退出暂停状态
+
+        Suspend 0
+
+        for key, tip in _keytip {
+            btn := _key[key]
+            setBtnEnable(btn, true)
+        }
+
+
+        for index, value in _keyClickArray2 {
+            btn := _key[value]
+            setBtnEnable(btn, true)
+        }       
+
+        for index, value in _keyCtrlArray {
+            btn := _key[value]
+            setBtnEnable(btn, true)
+        }        
+        ; WinSetStyle "-0xC00000", g_winTitle
+    }
+
+}
+
+/**
+ * Toggles the enabled state of a button by adjusting its transparency and visibility.
+ * @param btn The button object to modify
+ * @param bEnable Boolean flag - true to enable, false to disable
+ * When enabled: Sets full opacity (255) and makes visible
+ * When disabled: Sets partial transparency (100) while keeping visible
+ */
+setBtnEnable(btn, bEnable) {
+    if bEnable {
+        ;; 设置按钮可用状态（为不透明）
+        WinSetTransparent(255, "ahk_id " btn.Hwnd)
+        btn.Visible := true
+    } else {
+        ;; 设置按钮不可用状态（透明）
+        btn.Visible := false
+        WinSetTransparent(100, "ahk_id " btn.Hwnd)
+        btn.Visible := true
+    }
 }

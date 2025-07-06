@@ -87,7 +87,7 @@ DragWindow() {
 
   
  勾选SettingCheckBox(*) {
-     global _key, g_keyBoard_name
+     global _key, g_keyBoard_name, g_bSetting
      myGui.Submit(false)
      var_keyboard := ∑获取当前键盘名称()
      if var_keyboard = "默认键盘"
@@ -95,8 +95,7 @@ DragWindow() {
          MsgBox "默认键盘不能编辑！"
          return
      }
-     bCheck := !_key["setting"].value
-     _key["setting"].Value := bCheck
+     g_bSetting := !g_bSetting
      点击SettingCheckBox()
      if GetKeyState("Shift", "P")
          Send "{Shift up}"
@@ -217,7 +216,7 @@ SetCurrentModal(modal) {
     {
         退出键盘模态()
     }
-    else if g_CurrentModal = KeyboardModal.InputBox
+    else if g_CurrentModal = KeyboardModal.InputBox  
     {
         退出输入框模态()
     }
@@ -233,7 +232,7 @@ SetCurrentModal(modal) {
 点击SettingCheckBox(*) {
      global _key, g_keyBoard_name, k_ID, TransColor, g_keyBoard_setpic, g_keyBoard_sidepic,  _key, g_keyBoard_settingicon, g_keyBoard_icon
      myGui.Submit(false)
-     if _key["setting"].value
+     if g_bSetting
      {
         ;  change_icon("设置.ico", true, 1)
          _key["btn_setting"].Text := "返回"
@@ -314,8 +313,12 @@ FocusButtonHandle(ctrl, info){
      if caption_ = ""
          caption_ := var_caption
 
-    if myGui.HasProp("_key_" . keyName)
-        myGui["_key_" . keyName].Text := caption_
+    if _key.Has(keyName) {
+        ; MsgBox "按键按钮存在：" keyName ", 标题：" caption_
+        try {
+            _key[keyName].Text := caption_
+        }
+    }
  }
  
 
